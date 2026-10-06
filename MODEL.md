@@ -274,6 +274,28 @@ Na ordem inversa, o resultado final é o mesmo: 1.900 e 9.900.
 
 **Risco aceito.** A rede garante que todo event referencia uma authorization emitida, mas não que ela chegue ao Passa. Uma authorization sem resposta é tratada pela rede como recusada e seguida de cancellation, então a compra órfã esperada é só uma cancellation, sem dinheiro. Uma capture que fique órfã para sempre seria um erro da rede: ela continua visível no painel, mas fora do saldo.
 
+### Decisão 7 · Mês de uma compra
+
+Uma compra pertence ao mês do `occurred_at` da **authorization**, convertido para `America/Sao_Paulo`. Todas as transactions dela contam nesse mês: a reserva, as captures e a cancellation, mesmo que cheguem ou tenham acontecido depois. O mês fica gravado na compra quando a authorization chega.
+
+| Fato | `occurred_at` (São Paulo) | Mês da compra |
+|---|---|---|
+| authorization de 800 num hotel | 30/09 | setembro |
+| capture de 860 (final) | 02/10 | setembro |
+
+**Consequências.**
+
+- A regra 5 da Etapa 1 ("limite restante no mês a que a compra é atribuída") tem resposta já na chegada da authorization. Uma authorization offline de setembro que chega em outubro é decidida contra o limite restante de setembro e entra no statement de setembro, como o enunciado prevê ("statements de meses passados podem ganhar transactions novas").
+- A compra fica inteira num statement só, e a reserva da Decisão 4 é consumida e liberada no mesmo mês em que foi feita.
+- Antes de a authorization chegar, os events não geram transaction (Decisão 6), então nunca é preciso adivinhar o mês.
+- O saldo da empresa não é mensal: a reserva de uma compra de mês passado ainda aberta continua segurando o saldo disponível.
+- A virada do mês segue o fuso da Acme: `2026-10-01T01:00:00Z` é 30/09 às 22h em São Paulo, então conta em setembro.
+
+**Alternativas rejeitadas.**
+
+- **Cada transaction no mês do próprio `occurred_at`.** Uma reserva feita em setembro seria consumida por uma capture de outubro, e a compra precisaria de linhas cruzando meses para fechar o invariante de cada um. Também contradiz o enunciado, que atribui **compras** a um mês.
+- **Mês da primeira capture.** Na chegada da authorization ainda não existe capture, então o Passa não saberia contra o limite de qual mês decidir.
+
 ## 3. Riscos e garantias
 
 Os riscos que você identificou neste domínio. Para cada um: o que pode dar errado, o que no seu código impede que aconteça e qual teste prova isso.
