@@ -296,6 +296,28 @@ Uma compra pertence ao mês do `occurred_at` da **authorization**, convertido pa
 - **Cada transaction no mês do próprio `occurred_at`.** Uma reserva feita em setembro seria consumida por uma capture de outubro, e a compra precisaria de linhas cruzando meses para fechar o invariante de cada um. Também contradiz o enunciado, que atribui **compras** a um mês.
 - **Mês da primeira capture.** Na chegada da authorization ainda não existe capture, então o Passa não saberia contra o limite de qual mês decidir.
 
+### Decisão 8 · Projeção e recálculo
+
+Os dois, cada um com um papel.
+
+**Projeção, para o dia a dia.** Duas projeções, atualizadas na mesma transação do banco que grava cada transaction:
+
+- **empresa:** saldo e total reservado, na própria linha da empresa;
+- **cartão por mês:** o limite consumido daquele cartão naquele mês.
+
+As decisões de authorization, o `/available`, o painel e a área do funcionário leem a projeção. A linha da empresa é a mesma que o lock pessimista trava, então ler, decidir e atualizar acontecem no mesmo lugar e na mesma transação.
+
+**Recálculo, para verificar e consertar.** O ledger é a verdade, e a projeção é descartável:
+
+- o statement é sempre recalculado: percorre as transactions e soma linha a linha. Como o invariante da Etapa 3 exige que o final do statement seja igual ao `limit_remaining_cents` do `/available`, que lê a projeção, cada consulta compara as duas fontes;
+- um teste confere, ao final dos cenários, que cada projeção é igual à soma do ledger;
+- o comando `ledger:rebuild` apaga as projeções e as reconstrói a partir do ledger.
+
+**Alternativas rejeitadas.**
+
+- **Só recalcular.** Nunca diverge, mas cada authorization somaria o ledger inteiro do mês dentro do lock, e o custo cresce com o volume, sob o prazo de 2 segundos. E o lock precisaria travar a empresa sem guardar nada nela.
+- **Só projeção.** É rápida, mas um bug que atualizasse a projeção errado passaria despercebido e não teria conserto. Também abandonaria o replay da base arquitetural.
+
 ## 3. Riscos e garantias
 
 Os riscos que você identificou neste domínio. Para cada um: o que pode dar errado, o que no seu código impede que aconteça e qual teste prova isso.
