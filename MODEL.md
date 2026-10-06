@@ -339,6 +339,34 @@ A chave sequencial não é proteção de acesso. Um portador que troque o `id` d
 - **O `id` da rede como chave primária.** A deduplicação viria de graça, mas os depósitos não têm `id` da rede, então o ledger precisaria de outra chave e o modelo teria dois padrões. O schema ficaria acoplado a um formato externo, e o enunciado não garante que um `id` de authorization nunca coincida com um de event.
 - **UUID como chave própria.** Não é adivinhável, mas perde a ordem natural do ledger e não protege nada que a autorização já não proteja.
 
+### Decisão 10 · Reconhecer o mesmo fato
+
+Há dois tipos de repetição, e cada um tem a sua chave.
+
+| | Entrega repetida | Reemissão |
+|---|---|---|
+| `id` | igual | diferente |
+| Conteúdo | idêntico | idêntico, exceto o `id` |
+| Acontece com | authorizations e events, até 4 entregas, inclusive simultâneas | só events |
+| Chave que reconhece | `network_id` único (Decisão 9) | chave natural da compra: `captures (purchase_id, sequence)` e `cancellations (purchase_id)` |
+
+As chaves naturais vêm das garantias da rede: as sequences de uma compra começam em 1 e não se repetem, e há no máximo uma cancellation por compra. Elas valem também para events que chegam antes da authorization, porque a compra nasce com a primeira mensagem (Decisão 1).
+
+**O que o Passa responde.**
+
+| Situação | Resposta |
+|---|---|
+| Mensagem nova | grava e responde: a decisão, para authorization, ou `202`, para event |
+| Entrega repetida | a resposta original, lida do que foi gravado: a mesma decisão ou `200`. Nada novo é gravado |
+| Reemissão com conteúdo idêntico | `200`. Nada novo é gravado, e o `reference` no statement continua sendo o `id` da primeira mensagem |
+| Mesma chave natural com conteúdo diferente | `409`. A rede garante que isso não acontece. Se acontecer, o `4xx` vira pendência manual entre a rede e o Passa, que é o tratamento certo para uma inconsistência que precisa de alguém |
+
+Na comparação de conteúdo entram todos os campos do contrato menos o `id`: `type`, `authorization_id`, `occurred_at` e, nas captures, `amount_cents`, `currency`, `sequence` e `final`. Quando entregas ou reemissões chegam juntas, a segunda espera o commit da primeira no índice único, e depois compara ou lê o que foi gravado.
+
+**Alternativa rejeitada.**
+
+- **Fingerprint do conteúdo com índice único.** É genérico, mas não pega o caso perigoso: duas captures com a mesma `sequence` e valores diferentes têm fingerprints diferentes, entrariam as duas, e a compra seria cobrada em dobro. Seria uma camada a mais reimplementando, de forma mais fraca, o que a chave natural já garante.
+
 ## 3. Riscos e garantias
 
 Os riscos que você identificou neste domínio. Para cada um: o que pode dar errado, o que no seu código impede que aconteça e qual teste prova isso.
