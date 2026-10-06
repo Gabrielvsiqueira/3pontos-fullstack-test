@@ -4,8 +4,6 @@ Este arquivo é o coração da sua entrega. Escreva-o durante o desafio, não de
 
 ## 1. O modelo
 
-Diagrama (Mermaid ou imagem) e, para cada coisa que existe nele, uma linha dizendo por que ela existe.
-
 ### Base arquitetural
 
 Quatro escolhas sustentam todo o resto do modelo.
@@ -118,8 +116,6 @@ erDiagram
 As tabelas de mensagem (`Authorization`, `Capture`, `Cancellation`) também guardam o corpo bruto recebido, para auditoria. Como guardar o `id` da rede é a Decisão 9.
 
 ## 2. Decisões
-
-As dez decisões do enunciado. Para cada uma: o que você decidiu e o motivo, em duas ou três linhas. Nas que você hesitou, diga também a alternativa que rejeitou e o que pesou. É contra este texto que conferimos o seu sistema nos pontos que o enunciado deixa em aberto.
 
 ### Decisão 1 · Como representar authorization, capture, cancellation, compra e transaction
 
@@ -373,8 +369,6 @@ Os riscos que você identificou neste domínio. Para cada um: o que pode dar err
 
 ## 4. O que eu esperava dos cenários
 
-Antes de implementar, para P2 e P3: o resultado que você espera depois de cada mensagem e por quê, a partir das suas decisões. Depois de rodar: bateu? O que mudou?
-
 ### Antes de implementar
 
 Ponto de partida, pelo seed: empresa com saldo de R$ 10.000,00 e nada reservado.
@@ -423,5 +417,42 @@ Statement do Bruno ao final: −40000 → 10000 · −8000 → 2000 · −2000 �
 570,00 capturados na Ana, sem reserva aberta. Ana: limite restante e disponível de 143000. Diego: limite restante de 5000000 e disponível de 943000. Bate com o resultado que o enunciado publica.
 
 ## 5. O que mudou e o que foi descartado
+Usei IA durante todo o desafio como par de discussão e auxílio nas dúvidas. Não aceitei um rascunho pronto do `MODEL.md`: decidi cada um dos dez pontos separadamente, comparando e analizando as opções antes de escrever. 
 
-Alterações relevantes do modelo ao longo do caminho, com o motivo. E o que o seu primeiro rascunho, ou a IA, propôs e você não aceitou.
+### O que mudou no meu primeiro rascunho
+
+**Event sourcing.** Minha primeira ideia era event sourcing completo, achando que ele resolveria as mensagens repetidas chegando em concorrência, com snapshots no Postgres. Mudei três coisas:
+
+- Event sourcing não impede duplicata nem corrida entre compras. Quem impede são o índice único e o lock pessimista. Os dois entraram na base como pilares próprios.
+- Projeções assíncronas, comuns em event sourcing, quebrariam a decisão com o estado do momento (Etapa 1, regra 4) e o prazo de 2 segundos. As projeções ficaram síncronas, na mesma transação do banco.
+
+Fiquei com o padrão, sem a cerimônia: log append-only como fonte da verdade e projeções reconstruíveis. Na discussão também apareceu um ponto que eu não tinha considerado: o log precisa guardar as **decisões** do Passa, e não só as mensagens da rede. Sem elas, o replay em outra ordem poderia inverter uma aprovação.
+
+**DDD.** Pensei em DDD como diferencial. Fiquei com a versão leve: módulos por contexto e linguagem do domínio, com Actions e Eloquent direto, sem repositórios nem camadas de infraestrutura. O preset de arquitetura do Pest cobra as convenções do Laravel, e cada camada a mais seria código para explicar sem ganho neste escopo.
+
+**Limite negativo (Decisão 3).** Meu instinto foi que um cartão pré-pago nunca pode ficar negativo, e propus que o Passa cancelasse o excedente e avisasse o financeiro. Não funciona: quem envia cancellation é a rede, e o Passa só responde. E a capture chega depois da authorization, quando o valor já foi cobrado. Aceitei a capture inteira, com o argumento de que o negativo só nasce de cobrança da rede e trava novas compras. Registrei, na própria decisão, as mudanças de regra de negócio que eu levaria ao produto.
+
+**Reservar com margem (Decisão 4).** Considerei reservar 120% do autorizado nos MCC com gorjeta, como o pré-autorizado de hotel, para evitar o negativo. Descartei porque a Etapa 1, regra 3, define que a compra aprovada reserva o valor autorizado. Ficou como proposta de negócio.
+
+### Onde não aceitei a proposta da IA
+
+**Capture acima do teto dentro da margem (Decisão 5).** A IA recomendou não sinalizar: o teto é checado na authorization, e uma gorjeta dentro da margem é o comportamento esperado da rede. Sinalizar o normal encheria o painel de alertas. Decidi sinalizar. O teto por compra é uma regra que a empresa definiu, e qualquer valor que saia acima dele precisa chegar ao financeiro. Com isso, o P2 passou a ser sinalizado.
+
+### Descartado da base arquitetural
+
+| Descartado | Motivo |
+|---|---|
+| Projeções assíncronas, por fila | a decisão precisa do estado exato do momento; uma projeção atrasada permitiria aprovar acima do limite |
+| Event store genérico ou biblioteca de event sourcing | infraestrutura a mais para justificar e explicar; o padrão cabe em tabelas append-only |
+| Snapshots de agregados | otimização de replay para volumes grandes, sem ganho aqui |
+| `CHECKPOINT` e snapshots como proteção contra falha de disco | não protegem contra isso; durabilidade física é infraestrutura |
+| DDD com repositórios e camadas de infraestrutura | briga com o Laravel idiomático e com o preset de arquitetura do Pest |
+
+### Portas que o modelo deixa abertas
+
+O enunciado pede para anotar as portas que a modelagem abre para o que está fora do escopo:
+
+- **Estorno:** o ledger é append-only, então um estorno seria um novo `type` de transaction com deltas positivos, sem alterar nada do que já existe.
+- **Outras empresas:** cartões e transactions já pertencem a uma empresa, e o lock já é por linha de empresa. Várias empresas paralelizariam naturalmente.
+- **Fechamento do mês:** cada compra já tem o seu mês gravado (Decisão 7). Fechar um mês seria impedir que ele ganhe transactions novas, o que hoje o enunciado exige que aconteça.
+- **Moeda estrangeira:** `currency` é validada como `BRL` e o corpo bruto de cada mensagem é guardado, mas os valores não têm moeda própria. Seria preciso adicionar.
