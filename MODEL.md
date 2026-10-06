@@ -165,6 +165,37 @@ Uma capture que cabe na reserva entra no statement do cartão com `amount_cents`
 - **Só o capturado no statement.** Para o invariante fechar, o limite restante teria que ignorar as reservas. Logo depois de uma aprovação de 800, a Ana continuaria com 2.000 de limite restante, e uma authorization de 1.500 passaria na regra 5. Isso deixa 2.300 comprometidos num limite de 2.000.
 - **Duas linhas por capture (liberação + cobrança).** É mais legível, mas uma mensagem viraria duas transactions com a mesma `reference`, e cada capture encheria o saldo corrido de idas e voltas.
 
+### Decisão 3 · Capture acima do esperado
+
+Aceito a capture pelo valor inteiro e sinalizo a compra como problema. O excedente sai do limite restante e do saldo da empresa. O limite restante pode ficar negativo, como o vocabulário do enunciado prevê.
+
+**Por que aceitar.** A capture não é uma pergunta: é um valor que a rede **já cobrou** do portador e vai liquidar com o Passa (Etapa 2, regra 1). Recusá-la não desfaz a cobrança, só faz o sistema mostrar um saldo que não corresponde ao dinheiro pago.
+
+**O negativo é possível, mas limitado.** Ele só pode nascer de uma cobrança que a rede já fez, nunca de uma aprovação do Passa:
+
+| Origem | Pode gerar negativo? |
+|---|---|
+| Aprovação do Passa | Não. A regra de recusa (Etapa 1, regra 5) impede. |
+| Capture acima do esperado | Sim, e a compra é sinalizada para o financeiro. |
+| Compras depois do negativo | Não. Qualquer valor fica acima de um limite restante negativo, então a authorization é recusada com `monthly_limit_exceeded`. Com o saldo disponível da empresa zerado ou negativo, a recusa é `insufficient_funds`. |
+
+O cartão fica travado até o mês seguinte, ou a empresa até um novo depósito, e o financeiro vê o motivo no painel.
+
+**Ordem de chegada.** A capture é aceita sempre, então o saldo final é o mesmo chegue ela antes ou depois da authorization (Etapa 2, regra 5). O sinal de problema não é decidido na chegada da capture: ele é calculado sobre a compra sempre que ela ganha um fato novo, com `capturado × 100 ≤ autorizado × 120` nos MCC 5812, 7011 e 7512 e `capturado ≤ autorizado` nos demais. Uma capture que chega antes da authorization é avaliada quando a authorization chegar.
+
+**Alternativas rejeitadas.**
+
+- **Rejeitar a capture com `4xx`.** O event viraria pendência manual fora do sistema, e o saldo deixaria de refletir o dinheiro pago. Pior: a decisão dependeria da ordem de chegada. Sem a authorization, o Passa não sabe o valor autorizado nem o MCC e aceitaria; com ela, rejeitaria. As mesmas mensagens dariam saldos finais diferentes.
+- **Aceitar só até a margem e ignorar o excedente.** Os mesmos dois problemas, em escala menor.
+
+**Meu questionamento.** : Num cartão pré-pago real, deixar o limite ficar negativo me incomoda, e hesitei aqui. Mas o enunciado diz que estes pontos **não têm resposta certa**, e as restrições dele (a capture é um fato consumado e o resultado não pode depender da ordem) fecham as alternativas técnicas. Bloquear isso no sistema seria esconder o problema. Resolver de verdade é mudar a **regra de negócio**, para que a situação não chegue a acontecer. Eu levaria ao produto três caminhos, todos fora do escopo deste desafio:
+
+1. reservar com margem nos MCC com gorjeta ou consumo posterior, como o pré-autorizado de hotel (o quanto a compra reserva é a Decisão 4);
+2. negociar com a rede um teto contratual para captures acima do autorizado;
+3. definir com a empresa como o excedente é cobrado do portador ou absorvido.
+
+Até lá, o sistema registra a verdade, trava novos gastos e avisa o financeiro.
+
 ## 3. Riscos e garantias
 
 Os riscos que você identificou neste domínio. Para cada um: o que pode dar errado, o que no seu código impede que aconteça e qual teste prova isso.
