@@ -375,6 +375,53 @@ Os riscos que você identificou neste domínio. Para cada um: o que pode dar err
 
 Antes de implementar, para P2 e P3: o resultado que você espera depois de cada mensagem e por quê, a partir das suas decisões. Depois de rodar: bateu? O que mudou?
 
+### Antes de implementar
+
+Ponto de partida, pelo seed: empresa com saldo de R$ 10.000,00 e nada reservado.
+
+**Por que o disponível do Diego muda.** O limite restante é de cada cartão, e as compras da Ana não mexem no limite do Diego. Já o saldo da empresa é um só, compartilhado por todos os cartões. Como o disponível é o menor valor entre o limite restante e o saldo disponível da empresa, e o limite do Diego (R$ 50.000,00) é maior que todo o saldo, o disponível dele acompanha o saldo disponível da empresa. É o que o enunciado mostra no P1: limite restante de 5000000 e disponível de 943000.
+
+#### P2 · Ana (limite R$ 2.000,00, teto R$ 800,00), MCC 7011
+
+Valores em reais.
+
+| # | Mensagem | Decisão | Ana: limite restante | Ana: disponível | Diego: limite restante | Diego: disponível | Saldo da empresa | Reservado | Sinalizada |
+|---|---|---|---:|---:|---:|---:|---:|---:|---|
+| 1 | authorization 800,00 | `approved` | 1.200,00 | 1.200,00 | 50.000,00 | 9.200,00 | 10.000,00 | 800,00 | não |
+| 2 | capture 300,00, `sequence` 1 | — | 1.200,00 | 1.200,00 | 50.000,00 | 9.200,00 | 9.700,00 | 500,00 | não |
+| 3 | capture 300,00, `sequence` 2 | — | 1.200,00 | 1.200,00 | 50.000,00 | 9.200,00 | 9.400,00 | 200,00 | não |
+| 4 | capture 260,00, `sequence` 3, `final` | — | 1.140,00 | 1.140,00 | 50.000,00 | 9.140,00 | 9.140,00 | 0,00 | sim, `over_purchase_limit` |
+
+1. 800,00 é igual ao teto, e não acima dele, e cabe no limite e no saldo disponível: aprovada. A compra reserva o valor autorizado (Decisão 4), que sai do limite restante da Ana e do saldo disponível da empresa (10.000 − 800 = 9.200).
+2. e 3. Cada capture é debitada do saldo da empresa e consome a reserva no mesmo valor. O limite restante não muda, e a linha entra no statement com valor 0 (Decisão 2). O saldo disponível também não muda: o saldo cai 300, e o reservado cai 300.
+4. A capture final consome os 200,00 que restavam da reserva, e os 60,00 excedentes saem do limite restante. O total capturado é 860,00.
+   - `over_capture`: não, porque 86000 × 100 ≤ 80000 × 120, dentro da margem de 20% do MCC 7011.
+   - `over_purchase_limit`: sim, porque 860,00 passa do teto de 800,00 (Decisão 5).
+
+Statement da Ana ao final: −80000 → 120000 · 0 → 120000 · 0 → 120000 · −6000 → 114000.
+
+#### P3 · Bruno (limite R$ 500,00, sem teto), MCC 5812
+
+Valores em reais.
+
+| # | Mensagem | Decisão | Bruno: limite restante | Bruno: disponível | Diego: limite restante | Diego: disponível | Saldo da empresa | Reservado | Sinalizada |
+|---|---|---|---:|---:|---:|---:|---:|---:|---|
+| 1 | authorization 400,00 | `approved` | 100,00 | 100,00 | 50.000,00 | 9.600,00 | 10.000,00 | 400,00 | não |
+| 2 | capture 480,00, `final` | — | 20,00 | 20,00 | 50.000,00 | 9.520,00 | 9.520,00 | 0,00 | não |
+| 3 | authorization 50,00 | `declined`, `monthly_limit_exceeded` | 20,00 | 20,00 | 50.000,00 | 9.520,00 | 9.520,00 | 0,00 | não |
+| 4 | authorization 20,00 | `approved` | 0,00 | 0,00 | 50.000,00 | 9.500,00 | 9.520,00 | 20,00 | não |
+
+1. Cabe no limite e no saldo: aprovada, e reserva 400,00.
+2. A capture consome os 400,00 da reserva, e os 80,00 excedentes saem do limite restante. Não é sinalizada: 48000 × 100 = 40000 × 120, exatamente 20%, e a margem é inclusiva. O Bruno não tem teto por compra.
+3. 50,00 é maior que os 20,00 de limite restante: recusada pela regra 5 da Etapa 1. Uma authorization recusada não gera transaction (Decisão 2) e, sem capture, não é sinalizada (Decisão 5).
+4. 20,00 é igual ao limite restante, e não acima: aprovada. Reserva 20,00, o limite restante vai a zero, e o saldo disponível da empresa cai para 9.500,00 (9.520 − 20).
+
+Statement do Bruno ao final: −40000 → 10000 · −8000 → 2000 · −2000 → 0. A authorization recusada não aparece.
+
+#### P1, para conferência
+
+570,00 capturados na Ana, sem reserva aberta. Ana: limite restante e disponível de 143000. Diego: limite restante de 5000000 e disponível de 943000. Bate com o resultado que o enunciado publica.
+
 ## 5. O que mudou e o que foi descartado
 
 Alterações relevantes do modelo ao longo do caminho, com o motivo. E o que o seu primeiro rascunho, ou a IA, propôs e você não aceitou.
