@@ -365,7 +365,48 @@ Na comparação de conteúdo entram todos os campos do contrato menos o `id`: `t
 
 ## 3. Riscos e garantias
 
-Os riscos que você identificou neste domínio. Para cada um: o que pode dar errado, o que no seu código impede que aconteça e qual teste prova isso.
+### Dinheiro e concorrência
+
+| Risco: o que pode dar errado | O que impede | Teste |
+|---|---|---|
+| **Aprovar acima do limite em paralelo.** Duas authorizations do mesmo cartão chegam juntas, as duas leem o mesmo limite restante e as duas são aprovadas. | Decisão e gravação na mesma transação do banco, com `SELECT … FOR UPDATE` na empresa e depois no cartão. A segunda espera a primeira terminar e lê o limite já atualizado. | Várias authorizations simultâneas em processos separados, somando mais que o limite: o total aprovado nunca passa do limite nem do saldo disponível. |
+| **Deadlock.** Dois caminhos travam empresa e cartão em ordens diferentes e um espera pelo outro para sempre. | Todos os caminhos de escrita travam na mesma ordem: empresa, depois cartão. O depósito trava só a empresa. | Coberto pelo teste de concorrência, misturando authorizations e events do mesmo cartão. |
+| **Resposta antes do commit.** O Passa responde `approved`, a gravação falha, e a rede considera aprovada uma compra que não existe. | A resposta só é montada depois que `DB::transaction` retorna. Nada que mexe em dinheiro vai para fila. | Uma falha forçada depois da gravação faz rollback completo, responde `5xx` e não deixa nenhum registro. A nova entrega da mesma mensagem é processada normalmente. |
+| **Resposta depois de 2 segundos.** A rede trata a authorization como recusada e manda uma cancellation, enquanto o Passa tinha aprovado e reservado. | Transações curtas, sem I/O externo dentro do lock e com índices nas chaves de busca. Se ainda assim acontecer, a cancellation libera a reserva (Decisão 4) e o estado final fica correto. | Authorization aprovada seguida de cancellation: o limite e o saldo disponível voltam ao valor anterior. |
+| **Centavos perdidos por ponto flutuante.** | Valores sempre inteiros em centavos (`bigint`). A margem de 20% é comparada só com inteiros: `capturado × 100 ≤ autorizado × 120`. | Limite da margem: 480,00 sobre 400,00 não é sinalizado, e 480,01 é. |
+
+### Mensagens repetidas e fora de ordem
+
+| Risco: o que pode dar errado | O que impede | Teste |
+|---|---|---|
+| **Entrega repetida reservando em dobro**, ou entregas da mesma authorization respondendo decisões diferentes. | Índice único em `network_id` com `INSERT … ON CONFLICT`. A entrega repetida lê a resposta já gravada (Decisões 9 e 10). | A mesma authorization enviada duas vezes, em sequência e em paralelo: a mesma decisão nas duas e uma única transaction. |
+| **Reemissão cobrando em dobro.** A capture chega de novo com `id` novo. | Chaves naturais `captures (purchase_id, sequence)` e `cancellations (purchase_id)`, com comparação de conteúdo. Conteúdo idêntico responde `200` sem gravar; conteúdo diferente responde `409` (Decisão 10). | Reemissão idêntica não muda nada; mesma `sequence` com outro valor recebe `409`. |
+| **Uma mensagem gerando duas transactions** por um bug de aplicação. | Chave única em `transactions` na mensagem de origem (Decisão 9). | A segunda tentativa de gravar a transaction da mesma mensagem é recusada pelo banco. |
+| **Resultado dependente da ordem de chegada.** | Consumo = capturado + reserva (Decisão 4); events guardados até a authorization chegar (Decisão 6); sinalização calculada só com os fatos da compra (Decisão 5). | As mensagens do P2 e de uma compra com capture depois de cancellation, aplicadas em várias ordens: limite restante, saldo, saldo disponível e sinalização finais idênticos. |
+
+### Ledger e consultas
+
+| Risco: o que pode dar errado | O que impede | Teste |
+|---|---|---|
+| **Invariante do statement quebrado**, ou statement e `/available` discordando. | O statement soma o ledger linha a linha, em ordem de gravação; o `/available` lê a projeção atualizada na mesma transação (Decisão 8). | Ao final de cada cenário, cada linha do statement é a anterior mais o valor dela, e o final é igual ao `/available`. |
+| **Projeção divergindo do ledger.** | Projeção atualizada só pelo módulo Ledger, na mesma transação da transaction. O comando `ledger:rebuild` reconstrói a partir do ledger. | Projeção igual à soma do ledger depois dos cenários, e igual de novo depois do rebuild. |
+| **Transaction alterada ou apagada** depois de aparecer num statement. | Nenhum caminho de código faz `UPDATE` ou `DELETE` em mensagens, decisões ou transactions. Os models recusam atualização e exclusão. | Tentar alterar ou apagar uma transaction lança exceção. |
+| **Compra contada no mês errado** perto da meia-noite. | O `occurred_at` da authorization é convertido para `America/Sao_Paulo` antes de definir o mês (Decisão 7). | Uma authorization em `2026-10-01T01:00:00Z` entra no statement de setembro. |
+
+### Rede e contrato
+
+| Risco: o que pode dar errado | O que impede | Teste |
+|---|---|---|
+| **Requisição forjada ou reenviada por terceiros.** | HMAC-SHA256 sobre o corpo bruto, comparado com `hash_equals`, e janela de 5 minutos no timestamp. É o primeiro passo, antes de qualquer validação. | Assinatura ausente, inválida ou com timestamp fora da janela: `401`. Corpo inválido com assinatura inválida: `401`, e não `422`. GET sem corpo assinado sobre `"<timestamp>."`. |
+| **Tipo frouxo aceito.** `"12990"` como string ou `129.9` passando como valor. | Validação de tipo JSON estrito: inteiro precisa ser inteiro, string precisa ser string. A regra `integer` do Laravel aceita strings numéricas e não serve sozinha. | Cada campo do contrato com o tipo errado responde `422`. |
+
+### Acesso
+
+| Risco: o que pode dar errado | O que impede | Teste |
+|---|---|---|
+| **Portador entrando no painel.** O template libera o painel para qualquer usuário (`canAccessPanel` retorna `true`). | O painel aceita só a gestora. | Portador acessando `/admin`: `403`. |
+| **Portador vendo dados de outro portador**, trocando um `id` na URL ou num parâmetro de ação Livewire. | Toda consulta da área do funcionário parte do cartão do usuário logado. Nenhuma rota nem ação aceita um cartão como parâmetro, e uma compra de outro cartão não é encontrada. | Portador pedindo compra de outro: `404`, pela rota e pela ação Livewire. |
+| **Usuário sem cartão em `/my-card`.** | A rota exige que o usuário tenha cartão. | A Marina acessando `/my-card`: `403`. |
 
 ## 4. O que eu esperava dos cenários
 
