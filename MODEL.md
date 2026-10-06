@@ -196,6 +196,32 @@ O cartão fica travado até o mês seguinte, ou a empresa até um novo depósito
 
 Até lá, o sistema registra a verdade, trava novos gastos e avisa o financeiro.
 
+### Decisão 4 · O que uma compra reserva em cada momento
+
+Cada compra ocupa do limite do cartão, e do saldo disponível da empresa:
+
+> **consumo = total capturado + reserva**
+>
+> **reserva** = 0 se a compra foi recusada, já recebeu a capture `final: true` ou já recebeu uma cancellation. Senão, é o que falta capturar do valor autorizado, nunca menos que zero.
+
+| Momento | Reserva | Efeito |
+|---|---|---|
+| Aprovada | o valor autorizado | sai do limite e do saldo disponível |
+| Depois de uma capture parcial | autorizado − capturado, mínimo 0 | a capture é debitada do saldo da empresa na hora e consome a reserva no mesmo valor |
+| Depois da capture `final: true` | 0 | a capture é debitada, e o que sobrou da reserva volta para o limite e para o saldo disponível |
+| Depois de uma cancellation | 0 | o que sobrou da reserva volta |
+| Recusada | 0 | nada é reservado |
+
+Cada transaction (Decisão 2) é a diferença dessa conta antes e depois da mensagem. Com autorizado de 800 e captures de 300, 300 e 260 (final), o consumo passa por 800, 800, 800 e 860, e a reserva por 800, 500, 200 e 0.
+
+**Independe da ordem.** Quando a compra fecha, a reserva é zero e o consumo é exatamente o total capturado, seja qual for a ordem das captures. Se a capture final chega antes de uma parcial, ela libera o que sobrou, e a parcial que vem depois sai inteira do limite. O caminho muda, o resultado final não. Uma capture é debitada mesmo sem saldo ou limite para cobri-la (Decisão 3), porque a rede já a cobrou.
+
+**Alternativas rejeitadas.**
+
+- **Reservar autorizado × 120% nos MCC 5812, 7011 e 7512.** Diminuiria a chance de limite negativo, mas a Etapa 1, regra 3, diz que a compra aprovada reserva **o valor autorizado**. Isso é contrato, não decisão. A ideia fica como proposta de mudança de regra de negócio, na Decisão 3.
+- **Segurar a sobra da reserva até uma cancellation, depois da capture final.** A rede garante que a capture `final: true` é a última, mas não promete cancellation depois dela. A sobra ficaria presa no limite para sempre.
+- **Debitar as captures parciais só quando chegar a final.** Cada capture é dinheiro que a rede já cobrou. Adiar o débito deixaria o saldo da empresa desatualizado, e uma compra que nunca recebe a final nunca seria debitada.
+
 ## 3. Riscos e garantias
 
 Os riscos que você identificou neste domínio. Para cada um: o que pode dar errado, o que no seu código impede que aconteça e qual teste prova isso.
