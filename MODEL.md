@@ -222,6 +222,27 @@ Cada transaction (Decisão 2) é a diferença dessa conta antes e depois da mens
 - **Segurar a sobra da reserva até uma cancellation, depois da capture final.** A rede garante que a capture `final: true` é a última, mas não promete cancellation depois dela. A sobra ficaria presa no limite para sempre.
 - **Debitar as captures parciais só quando chegar a final.** Cada capture é dinheiro que a rede já cobrou. Adiar o débito deixaria o saldo da empresa desatualizado, e uma compra que nunca recebe a final nunca seria debitada.
 
+### Decisão 5 · Compras sinalizadas como problema
+
+**Princípio.** O sinal depende só dos fatos da própria compra e das regras fixas do cartão, nunca de outras compras nem da ordem de chegada. Ele é recalculado sempre que a compra ganha um fato novo. Assim, as mesmas mensagens geram os mesmos alertas em qualquer ordem. Uma compra pode ter mais de um motivo, e o painel mostra todos.
+
+| Motivo | Quando | Por quê |
+|---|---|---|
+| `over_capture` | total capturado acima da margem: `capturado × 100 > autorizado × 120` nos MCC 5812, 7011 e 7512, ou `capturado > autorizado` nos demais | a rede cobrou além do que o enunciado prevê (Decisão 3) |
+| `over_purchase_limit` | o cartão tem teto por compra e o total capturado passa dele | o teto é uma regra de negócio da empresa: tudo o que sai acima dele precisa chegar ao financeiro, mesmo dentro da margem da rede |
+| `captured_when_declined` | a compra tem capture, mas a authorization foi recusada | saiu dinheiro sem aprovação do Passa; é o alerta mais grave |
+| `captured_after_cancellation` | uma capture tem `occurred_at` posterior ao da cancellation | a rede disse que não cobraria mais e cobrou. A comparação é pelo horário do fato na rede, não pela chegada, para não depender da ordem |
+
+Os motivos que dependem da authorization (`over_capture`, `captured_when_declined`) só podem ser avaliados quando ela chega. Até lá, a compra aparece na lista de events sem authorization.
+
+**O que não é sinalizado.**
+
+- **Compra que deixou o limite do cartão negativo.** Qual compra "deixou negativo" depende da ordem em que as mensagens foram processadas, o que fere o princípio. O limite negativo fica visível na lista de cartões do painel, porque é um estado do cartão, não da compra.
+- **Events cuja authorization ainda não chegou.** É um estado temporário e já tem lista própria no painel (Etapa 4, requisito 7).
+- **Authorization recusada sem capture.** É o sistema funcionando. Ela aparece na lista de recusadas (Etapa 4, requisito 5).
+
+**Alternativa que pesei para decisão.** Não sinalizar capture acima do teto quando ela está dentro da margem da rede, já que o teto é checado na authorization e a gorjeta dentro da margem é comportamento esperado. Ficaria com menos alertas, mas decidi sinalizar: o teto é um limite que a empresa definiu por compra, e passar dele, por qualquer motivo, é algo que o financeiro precisa ver. É também o desempate do enunciado: aprove e registre o alerta. Com isso, o P2 é sinalizado.
+
 ## 3. Riscos e garantias
 
 Os riscos que você identificou neste domínio. Para cada um: o que pode dar errado, o que no seu código impede que aconteça e qual teste prova isso.
