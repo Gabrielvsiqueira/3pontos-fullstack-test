@@ -147,6 +147,24 @@ O statement do cartão é a coluna `limit_delta_cents` com o saldo corrido, e o 
 
 ### Decisão 2 · A reserva aparece no statement
 
+Sim. A authorization aprovada gera uma transaction que reserva o valor e já reduz o limite restante. Cada mensagem que mexe em dinheiro gera **exatamente uma** transaction, com o valor líquido em relação à reserva que ela consome. A `reference` é o `id` da mensagem.
+
+| `type` | Origem | `limit_delta` | `balance_delta` | `held_delta` |
+|---|---|---|---|---|
+| `authorization` | authorization aprovada | −autorizado | 0 | +autorizado |
+| `capture` | capture | −(parte da capture que excede a reserva restante) | −capturado | −(reserva consumida) |
+| `cancellation` | cancellation | +reserva restante | 0 | −reserva restante |
+| `deposit` | depósito no painel | 0 | +depositado | 0 |
+
+Uma authorization recusada não gera transaction, porque não move dinheiro. Ela aparece na história da compra e na lista de recusadas do painel, mas não no statement.
+
+Uma capture que cabe na reserva entra no statement do cartão com `amount_cents` 0. O limite já tinha sido descontado na aprovação, e a capture só troca reserva por cobrança. O painel e a área do funcionário mostram o valor capturado ao lado da linha.
+
+**Alternativas rejeitadas.**
+
+- **Só o capturado no statement.** Para o invariante fechar, o limite restante teria que ignorar as reservas. Logo depois de uma aprovação de 800, a Ana continuaria com 2.000 de limite restante, e uma authorization de 1.500 passaria na regra 5. Isso deixa 2.300 comprometidos num limite de 2.000.
+- **Duas linhas por capture (liberação + cobrança).** É mais legível, mas uma mensagem viraria duas transactions com a mesma `reference`, e cada capture encheria o saldo corrido de idas e voltas.
+
 ## 3. Riscos e garantias
 
 Os riscos que você identificou neste domínio. Para cada um: o que pode dar errado, o que no seu código impede que aconteça e qual teste prova isso.
