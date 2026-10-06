@@ -318,6 +318,27 @@ As decisões de authorization, o `/available`, o painel e a área do funcionári
 - **Só recalcular.** Nunca diverge, mas cada authorization somaria o ledger inteiro do mês dentro do lock, e o custo cresce com o volume, sob o prazo de 2 segundos. E o lock precisaria travar a empresa sem guardar nada nela.
 - **Só projeção.** É rápida, mas um bug que atualizasse a projeção errado passaria despercebido e não teria conserto. Também abandonaria o replay da base arquitetural.
 
+### Decisão 9 · Chaves internas
+
+Toda tabela tem chave própria (`bigint`, o padrão do Laravel). O `id` da rede fica numa coluna com índice único:
+
+| Tabela | Chave | `id` da rede |
+|---|---|---|
+| `purchases` | `id` | `network_authorization_id`, único |
+| `authorizations` | `id` | `network_id`, único |
+| `captures` | `id` | `network_id`, único |
+| `cancellations` | `id` | `network_id`, único |
+| `transactions` | `id` | `reference`, o `id` da mensagem que originou a linha |
+
+O índice único em `network_id` é o que sustenta o `INSERT … ON CONFLICT` da base arquitetural. Em `transactions`, uma chave única na mensagem de origem garante no banco que uma mensagem gera no máximo uma transaction (Decisão 2): mesmo que um bug tente aplicar a mesma capture duas vezes, o Postgres recusa. O `id` sequencial do ledger também dá uma ordem estável de gravação, que o statement usa.
+
+A chave sequencial não é proteção de acesso. Um portador que troque o `id` de uma compra na URL recebe `404`, porque toda consulta da área do funcionário é filtrada pelo cartão do usuário logado (Etapa 5, requisito 4).
+
+**Alternativas rejeitadas.**
+
+- **O `id` da rede como chave primária.** A deduplicação viria de graça, mas os depósitos não têm `id` da rede, então o ledger precisaria de outra chave e o modelo teria dois padrões. O schema ficaria acoplado a um formato externo, e o enunciado não garante que um `id` de authorization nunca coincida com um de event.
+- **UUID como chave própria.** Não é adivinhável, mas perde a ordem natural do ledger e não protege nada que a autorização já não proteja.
+
 ## 3. Riscos e garantias
 
 Os riscos que você identificou neste domínio. Para cada um: o que pode dar errado, o que no seu código impede que aconteça e qual teste prova isso.
