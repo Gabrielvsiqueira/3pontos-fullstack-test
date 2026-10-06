@@ -1,0 +1,39 @@
+{
+    "name": "@3pontos-tech/mid-fullstack-test",
+    "license": "MIT",
+    "$schema": "https://json.schemastore.org/package.json",
+    "private": true,
+    "type": "module",
+    "engines": {
+        "node": "^24"
+    },
+    "scripts": {
+        "build": "vite build",
+        "dev": "vite",
+        "format": "npx prettier --write \"**/*.{js,ts,json,yml,md,css,blade.php}\"",
+        "prepare": "npx -y husky",
+        "outdated": "npx npm-check-updates"
+    },
+    "devDependencies": {
+        "@tailwindcss/vite": "^4.2.0",
+        "axios": "^1.13.0",
+        "concurrently": "^10.0.3",
+        "husky": "^9.1.7",
+        "laravel-vite-plugin": "^3.1.0",
+        "lint-staged": "^16.4.0",
+        "npm-check-updates": "^19.0.0",
+        "prettier": "^3.8.0",
+        "prettier-plugin-blade": "^3.1.0",
+        "prettier-plugin-tailwindcss": "^0.7.0",
+        "tailwindcss": "^4.2.0",
+        "vite": "^8.0.0"
+    },
+    "lint-staged": {
+        "*.{js,ts,json,yml,md,css,blade.php}": [
+            "prettier --write"
+        ],
+        "*.php": [
+            "vendor/bin/pint"
+        ]
+    }
+}

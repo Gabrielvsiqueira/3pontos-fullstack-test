@@ -1,0 +1,77 @@
+services:
+  passa-db:
+    build:
+      dockerfile: docker/postgres.Dockerfile
+      context: .
+    image: postgres.local:18
+    container_name: passa-db
+    restart: no
+    hostname: dev
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: passa
+    ports:
+      - '5432:5432'
+    volumes:
+      - passa-db:/var/lib/postgresql
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - dev-passa
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready --quiet --username=postgres --dbname=postgres || exit 1']
+      interval: 10s
+      retries: 5
+      timeout: 10s
+      start_period: 15s
+
+  passa-redis:
+    build:
+      dockerfile: docker/redis.Dockerfile
+      context: .
+    image: redis.local:8
+    container_name: passa-redis
+    restart: no
+    hostname: dev
+    ports:
+      - '6379:6379'
+    networks:
+      - dev-passa
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli --raw incr ping || exit 1']
+      interval: 10s
+      retries: 5
+      timeout: 10s
+      start_period: 15s
+
+  passa-mailpit:
+    build:
+      dockerfile: docker/mailpit.Dockerfile
+      context: .
+    image: mailpit.local:1
+    container_name: passa-mailpit
+    restart: no
+    hostname: dev
+    ports:
+      - '1025:1025'
+      - '8025:8025'
+    networks:
+      - dev-passa
+    healthcheck:
+      test: ['CMD', '/mailpit', 'readyz']
+      interval: 10s
+      retries: 5
+      timeout: 10s
+      start_period: 10s
+
+volumes:
+  passa-db:
+    name: passa-db
+
+networks:
+  dev-passa:
+    name: dev-passa
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: dev-passa
+      com.docker.network.bridge.host_binding_ipv4: '127.0.0.1'

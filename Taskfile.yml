@@ -1,0 +1,88 @@
+version: '3'
+
+silent: true
+
+tasks:
+  default:
+    aliases: [help, h]
+    desc: Show available commands
+    cmds:
+      - task --list-all --sort none
+
+  setup:
+    desc: Install dependencies, migrate, seed and build assets
+    cmd: composer run-script setup
+
+  pint:
+    desc: Run Pint code style fixer
+    cmd: 'XDEBUG_MODE=off {{ .ROOT_DIR }}/vendor/bin/pint --parallel'
+
+  test-pint:
+    desc: Run Pint code style fixer in test mode
+    cmd: 'XDEBUG_MODE=off {{ .ROOT_DIR }}/vendor/bin/pint --parallel --test'
+
+  rector:
+    desc: Run Rector
+    cmd: '{{ .ROOT_DIR }}/vendor/bin/rector process'
+
+  test-rector:
+    desc: Run Rector in test mode
+    cmd: '{{ .ROOT_DIR }}/vendor/bin/rector process --dry-run'
+
+  phpstan:
+    desc: Run PHPStan
+    cmd: '{{ .ROOT_DIR }}/vendor/bin/phpstan analyse --ansi --memory-limit=1G'
+
+  test-phpstan:
+    desc: Run PHPStan in test mode
+    cmd: '{{ .ROOT_DIR }}/vendor/bin/phpstan analyse --ansi --memory-limit=1G'
+
+  format:
+    desc: Run Rector and Pint and fix the source code
+    aliases: [f]
+    cmds:
+      - task: rector
+      - task: pint
+
+  check:
+    desc: Run Rector, Pint and PHPStan in dry-run mode
+    aliases: [c]
+    cmds:
+      - task: test-rector
+      - task: test-pint
+      - task: test-phpstan
+
+  test:
+    desc: Run all tests
+    aliases: [t]
+    cmd: '{{ .ROOT_DIR }}/vendor/bin/pest --parallel --compact'
+
+  test-unit:
+    desc: Run unit tests
+    aliases: [tu]
+    cmd: '{{ .ROOT_DIR }}/vendor/bin/pest --parallel --compact --group=unit'
+
+  test-feature:
+    desc: Run feature tests
+    aliases: [tf]
+    cmd: '{{ .ROOT_DIR }}/vendor/bin/pest --parallel --compact --group=feature'
+
+  migrate-fresh:
+    desc: Run migrations and seed the database
+    aliases: [mf]
+    cmd: 'php artisan migrate:fresh --seed'
+
+  env-up:
+    desc: Start the development environment (Postgres, Redis, Mailpit)
+    aliases: [eu]
+    cmd: 'docker compose up --detach --build'
+
+  env-down:
+    desc: Stop the development environment and remove volumes
+    aliases: [ed]
+    cmd: 'docker compose down --rmi all --volumes'
+
+  dev:
+    desc: Start the server, queue, logs and Vite
+    aliases: [d]
+    cmd: 'composer run-script dev'
