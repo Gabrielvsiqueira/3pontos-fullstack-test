@@ -243,6 +243,37 @@ Os motivos que dependem da authorization (`over_capture`, `captured_when_decline
 
 **Alternativa que pesei para decisão.** Não sinalizar capture acima do teto quando ela está dentro da margem da rede, já que o teto é checado na authorization e a gorjeta dentro da margem é comportamento esperado. Ficaria com menos alertas, mas decidi sinalizar: o teto é um limite que a empresa definiu por compra, e passar dele, por qualquer motivo, é algo que o financeiro precisa ver. É também o desempate do enunciado: aprove e registre o alerta. Com isso, o P2 é sinalizado.
 
+### Decisão 6 · Event sem authorization e capture depois de cancellation
+
+**Event antes da authorization.** O event não traz `card_token`, só o `authorization_id`. Sem a authorization, o Passa não sabe de qual cartão é a compra. Por isso, o event é aceito (`202`) e gravado na compra, mas ainda não gera transaction. Quando a authorization chega, na mesma transação do banco:
+
+1. o Passa decide com o estado do momento, **sem contar os events da própria compra**: a Etapa 1 compara o `amount_cents` da authorization com o limite restante e o saldo disponível, e é só isso;
+2. grava a decisão;
+3. aplica os events pendentes em ordem de `occurred_at`. Cada um gera a sua transaction, com o próprio `occurred_at` e a própria `reference`, pela fórmula da Decisão 4.
+
+Se a compra já recebeu a capture final ou uma cancellation antes da authorization, a aprovação reserva zero, porque a compra já está fechada. Se a authorization for recusada e a compra tiver captures, elas são debitadas mesmo assim (Decisão 3) e a compra é sinalizada com `captured_when_declined` (Decisão 5).
+
+Enquanto a authorization não chega, a compra aparece no painel na lista de events sem authorization, com o valor já capturado, e não conta no saldo da empresa.
+
+**Capture depois de cancellation.** Aceita e debitada. A cancellation zerou a reserva, então a capture sai inteira do limite restante e do saldo, e a compra é sinalizada com `captured_after_cancellation`. Pela fórmula da Decisão 4, o consumo final é o total capturado, chegue a capture antes ou depois da cancellation.
+
+**Exemplo.** Capture final de 100 na Ana antes da authorization de 100 (MCC 5812):
+
+| Chega | O que o Passa faz | Limite da Ana | Saldo da empresa |
+|---|---|---:|---:|
+| capture 100 (final) | grava, sem transaction | 2.000 | 10.000 |
+| authorization 100 | aprova, reserva zero (compra fechada) e aplica a capture | 1.900 | 9.900 |
+
+Na ordem inversa, o resultado final é o mesmo: 1.900 e 9.900.
+
+**Alternativas rejeitadas.**
+
+- **Debitar o saldo da empresa na chegada do event e o limite do cartão depois.** O saldo refletiria a cobrança antes, mas um event viraria duas transactions com a mesma `reference`, o que contradiz a Decisão 2.
+- **Contar as captures já recebidas na decisão da authorization.** Poderia recusar uma compra que a rede já cobrou, e a decisão passaria a depender de os events terem chegado antes ou depois. O desempate do enunciado é aprovar.
+- **Rejeitar com `4xx` a capture que chega depois de cancellation.** O saldo deixaria de bater com o dinheiro pago, e o resultado dependeria da ordem: chegando antes da cancellation, a mesma capture seria aceita.
+
+**Risco aceito.** A rede garante que todo event referencia uma authorization emitida, mas não que ela chegue ao Passa. Uma authorization sem resposta é tratada pela rede como recusada e seguida de cancellation, então a compra órfã esperada é só uma cancellation, sem dinheiro. Uma capture que fique órfã para sempre seria um erro da rede: ela continua visível no painel, mas fora do saldo.
+
 ## 3. Riscos e garantias
 
 Os riscos que você identificou neste domínio. Para cada um: o que pode dar errado, o que no seu código impede que aconteça e qual teste prova isso.
