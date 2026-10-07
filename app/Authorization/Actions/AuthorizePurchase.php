@@ -11,6 +11,7 @@ use App\Enums\DeclineReason;
 use App\Enums\TransactionType;
 use App\Ledger\BillingMonth;
 use App\Ledger\Ledger;
+use App\Ledger\PurchaseFlags;
 use App\Ledger\PurchaseMovements;
 use App\Ledger\Purchases;
 use App\Models\Authorization;
@@ -26,6 +27,7 @@ final readonly class AuthorizePurchase
         private Ledger $ledger,
         private Purchases $purchases,
         private PurchaseMovements $movements,
+        private PurchaseFlags $flags,
     ) {}
 
     public function handle(AuthorizationMessage $message): AuthorizationResult
@@ -102,6 +104,8 @@ final readonly class AuthorizePurchase
 
                 $this->movements->applyPending($purchase, $company);
             }
+
+            $this->flags->recompute($purchase);
 
             return AuthorizationResult::from($authorization);
         });

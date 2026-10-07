@@ -137,5 +137,7 @@ it('reaches the same totals in every arrival order', function (): void {
             'captured' => 86_000,
             'closed' => true,
         ], 'order: '.implode(' → ', $order));
+
+        expect(Purchase::query()->where('network_authorization_id', $id)->sole()->isFlagged())->toBeFalse();
     }
 });

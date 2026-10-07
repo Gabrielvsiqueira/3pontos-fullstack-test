@@ -6,6 +6,7 @@ namespace App\Ledger\Actions;
 
 use App\Enums\EventOutcome;
 use App\Exceptions\PurchaseChangedWhileLocking;
+use App\Ledger\PurchaseFlags;
 use App\Ledger\PurchaseMovements;
 use App\Ledger\Purchases;
 use App\Models\Cancellation;
@@ -24,6 +25,7 @@ final readonly class RecordEvent
     public function __construct(
         private Purchases $purchases,
         private PurchaseMovements $movements,
+        private PurchaseFlags $flags,
     ) {}
 
     public function handle(CaptureMessage|CancellationMessage $message): EventOutcome
@@ -80,6 +82,8 @@ final readonly class RecordEvent
             $this->movements->applyCapture($purchase, $company, $capture);
         }
 
+        $this->flags->recompute($purchase);
+
         return EventOutcome::Accepted;
     }
 
@@ -98,6 +102,8 @@ final readonly class RecordEvent
         if ($company instanceof Company) {
             $this->movements->applyCancellation($purchase, $company, $cancellation);
         }
+
+        $this->flags->recompute($purchase);
 
         return EventOutcome::Accepted;
     }
