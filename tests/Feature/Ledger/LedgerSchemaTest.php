@@ -7,6 +7,7 @@ use App\Ledger\Actions\RecordDeposit;
 use App\Models\Company;
 use App\Models\Purchase;
 use App\Models\Transaction;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -68,4 +69,14 @@ it('does not mutate the ledger when the seed runs twice', function (): void {
 
     expect(Company::query()->sole()->balance_cents)->toBe(1_000_000)
         ->and(Transaction::query()->count())->toBe(1);
+});
+
+it('reads network times back exactly as they were written', function (): void {
+    $occurredAt = CarbonImmutable::parse('2026-09-17T14:03:22Z');
+
+    $deposit = resolve(RecordDeposit::class)->handle(Company::factory()->create(), 1_000, occurredAt: $occurredAt);
+
+    expect(DB::selectOne('show timezone')->TimeZone)->toBe('UTC')
+        ->and($deposit->refresh()->occurred_at->equalTo($occurredAt))->toBeTrue()
+        ->and($deposit->transaction->occurred_at->utc()->format('Y-m-d\TH:i:s\Z'))->toBe('2026-09-17T14:03:22Z');
 });
