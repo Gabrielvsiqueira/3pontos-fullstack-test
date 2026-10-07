@@ -6,13 +6,15 @@ namespace App\Http\Controllers\Network;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Network\EventRequest;
+use App\Ledger\Actions\RecordEvent;
 use Illuminate\Http\JsonResponse;
-use Symfony\Component\HttpFoundation\Response;
 
 final class EventController extends Controller
 {
-    public function __invoke(EventRequest $request): JsonResponse
+    public function __invoke(EventRequest $request, RecordEvent $recordEvent): JsonResponse
     {
-        return response()->json(['message' => 'Not implemented.'], Response::HTTP_NOT_IMPLEMENTED);
+        $outcome = $recordEvent->handle($request->message());
+
+        return response()->json(['status' => $outcome->value], $outcome->httpStatus());
     }
 }

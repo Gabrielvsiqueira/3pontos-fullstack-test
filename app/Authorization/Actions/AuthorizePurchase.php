@@ -11,10 +11,10 @@ use App\Enums\DeclineReason;
 use App\Enums\TransactionType;
 use App\Ledger\BillingMonth;
 use App\Ledger\Ledger;
+use App\Ledger\Purchases;
 use App\Models\Authorization;
 use App\Models\Card;
 use App\Models\Company;
-use App\Models\Purchase;
 use App\Network\Messages\AuthorizationMessage;
 use Illuminate\Support\Facades\DB;
 
@@ -23,6 +23,7 @@ final readonly class AuthorizePurchase
     public function __construct(
         private DeclineRules $rules,
         private Ledger $ledger,
+        private Purchases $purchases,
     ) {}
 
     public function handle(AuthorizationMessage $message): AuthorizationResult
@@ -38,7 +39,7 @@ final readonly class AuthorizePurchase
                 $card = Card::query()->lockForUpdate()->findOrFail($cardId);
             }
 
-            $purchase = $this->lockPurchase($message->id);
+            $purchase = $this->purchases->lockOrCreate($message->id);
 
             $existing = Authorization::query()->where('purchase_id', $purchase->id)->first();
 
@@ -96,19 +97,5 @@ final readonly class AuthorizePurchase
 
             return AuthorizationResult::from($authorization);
         });
-    }
-
-    private function lockPurchase(string $networkAuthorizationId): Purchase
-    {
-        Purchase::query()->insertOrIgnore([
-            'network_authorization_id' => $networkAuthorizationId,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        return Purchase::query()
-            ->where('network_authorization_id', $networkAuthorizationId)
-            ->lockForUpdate()
-            ->firstOrFail();
     }
 }
