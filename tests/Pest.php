@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Network\NetworkSignature;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
@@ -21,10 +22,15 @@ use Tests\TestCase;
 
 pest()->group('feature')->in('Feature');
 pest()->group('unit')->in('Unit');
+pest()->group('concurrency')->in('Concurrency');
 
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->in('Feature', 'Unit');
+
+pest()->extend(TestCase::class)
+    ->use(DatabaseTruncation::class)
+    ->in('Concurrency');
 
 pest()->printer()->compact();
 

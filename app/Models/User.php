@@ -14,9 +14,6 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-/**
- * @property UserRole $role
- */
 final class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<UserFactory> */
