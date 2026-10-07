@@ -25,12 +25,12 @@ flowchart LR
     UI -->|depósito| Ledger
 ```
 
-| Módulo | Por que existe |
-|---|---|
-| `Network` | Verifica a assinatura, valida o contrato, grava a mensagem como fato imutável e barra duplicatas. Não conhece regra de negócio. |
-| `Authorization` | Aplica os motivos de recusa na ordem do enunciado e grava a decisão uma única vez. |
-| `Ledger` | Único módulo que cria transactions e atualiza as projeções. |
-| `Cards` | Empresa, cartões, portadores e as regras de cada cartão (MCC bloqueado, teto por compra, bloqueio, limite mensal). |
+| Módulo          | Por que existe                                                                                                                  |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `Network`       | Verifica a assinatura, valida o contrato, grava a mensagem como fato imutável e barra duplicatas. Não conhece regra de negócio. |
+| `Authorization` | Aplica os motivos de recusa na ordem do enunciado e grava a decisão uma única vez.                                              |
+| `Ledger`        | Único módulo que cria transactions e atualiza as projeções.                                                                     |
+| `Cards`         | Empresa, cartões, portadores e as regras de cada cartão (MCC bloqueado, teto por compra, bloqueio, limite mensal).              |
 
 #### O log
 
@@ -88,6 +88,8 @@ erDiagram
     PURCHASE ||--o| AUTHORIZATION : "tem"
     PURCHASE ||--o{ CAPTURE : "tem"
     PURCHASE ||--o| CANCELLATION : "tem"
+    COMPANY ||--o{ DEPOSIT : "recebe"
+    DEPOSIT ||--o| TRANSACTION : "origina"
     COMPANY ||--o{ TRANSACTION : "movimenta"
     CARD ||--o{ TRANSACTION : "movimenta"
     PURCHASE ||--o{ TRANSACTION : "origina"
@@ -102,16 +104,17 @@ erDiagram
     }
 ```
 
-| Entidade | Por que existe |
-|---|---|
-| `Company` | Dona do saldo. Toda escrita de dinheiro trava esta linha primeiro. |
-| `Card` | Limite mensal e regras: MCC bloqueados, teto por compra, bloqueio. Pertence a um portador. |
-| `User` | Login da gestora no painel e dos portadores na área do funcionário. |
-| `Purchase` | Agrupa tudo o que a rede manda sob o mesmo `authorization_id`. Nasce com a primeira mensagem que citar esse `id`, seja a authorization ou um event. |
-| `Authorization` | A mensagem da rede e a decisão do Passa (`decision` e `reason`), gravadas uma única vez. |
-| `Capture` | Cada capture recebida, com `sequence` e `final`. Única por compra e `sequence`. |
-| `Cancellation` | No máximo uma por compra. |
-| `Transaction` | Linha append-only do ledger. Os três deltas dizem o que ela muda no limite do cartão, no saldo e na reserva da empresa. |
+| Entidade        | Por que existe                                                                                                                                      |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Company`       | Dona do saldo. Toda escrita de dinheiro trava esta linha primeiro.                                                                                  |
+| `Card`          | Limite mensal e regras: MCC bloqueados, teto por compra, bloqueio. Pertence a um portador.                                                          |
+| `User`          | Login da gestora no painel e dos portadores na área do funcionário.                                                                                 |
+| `Purchase`      | Agrupa tudo o que a rede manda sob o mesmo `authorization_id`. Nasce com a primeira mensagem que citar esse `id`, seja a authorization ou um event. |
+| `Authorization` | A mensagem da rede e a decisão do Passa (`decision` e `reason`), gravadas uma única vez.                                                            |
+| `Capture`       | Cada capture recebida, com `sequence` e `final`. Única por compra e `sequence`.                                                                     |
+| `Cancellation`  | No máximo uma por compra.                                                                                                                           |
+| `Deposit`       | Cada depósito feito no painel, com quem depositou. É a origem da transaction de tipo `deposit`.                                                     |
+| `Transaction`   | Linha append-only do ledger. Os três deltas dizem o que ela muda no limite do cartão, no saldo e na reserva da empresa.                             |
 
 As tabelas de mensagem (`Authorization`, `Capture`, `Cancellation`) também guardam o corpo bruto recebido, para auditoria. Como guardar o `id` da rede é a Decisão 9.
 
@@ -145,12 +148,12 @@ O statement do cartão é a coluna `limit_delta_cents` com o saldo corrido, e o 
 
 Sim. A authorization aprovada gera uma transaction que reserva o valor e já reduz o limite restante. Cada mensagem que mexe em dinheiro gera **exatamente uma** transaction, com o valor líquido em relação à reserva que ela consome. A `reference` é o `id` da mensagem.
 
-| `type` | Origem | `limit_delta` | `balance_delta` | `held_delta` |
-|---|---|---|---|---|
-| `authorization` | authorization aprovada | −autorizado | 0 | +autorizado |
-| `capture` | capture | −(parte da capture que excede a reserva restante) | −capturado | −(reserva consumida) |
-| `cancellation` | cancellation | +reserva restante | 0 | −reserva restante |
-| `deposit` | depósito no painel | 0 | +depositado | 0 |
+| `type`          | Origem                 | `limit_delta`                                     | `balance_delta` | `held_delta`         |
+| --------------- | ---------------------- | ------------------------------------------------- | --------------- | -------------------- |
+| `authorization` | authorization aprovada | −autorizado                                       | 0               | +autorizado          |
+| `capture`       | capture                | −(parte da capture que excede a reserva restante) | −capturado      | −(reserva consumida) |
+| `cancellation`  | cancellation           | +reserva restante                                 | 0               | −reserva restante    |
+| `deposit`       | depósito no painel     | 0                                                 | +depositado     | 0                    |
 
 Uma authorization recusada não gera transaction, porque não move dinheiro. Ela aparece na história da compra e na lista de recusadas do painel, mas não no statement.
 
@@ -169,10 +172,10 @@ Aceito a capture pelo valor inteiro e sinalizo a compra como problema. O exceden
 
 **O negativo é possível, mas limitado.** Ele só pode nascer de uma cobrança que a rede já fez, nunca de uma aprovação do Passa:
 
-| Origem | Pode gerar negativo? |
-|---|---|
-| Aprovação do Passa | Não. A regra de recusa (Etapa 1, regra 5) impede. |
-| Capture acima do esperado | Sim, e a compra é sinalizada para o financeiro. |
+| Origem                     | Pode gerar negativo?                                                                                                                                                                                                 |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Aprovação do Passa         | Não. A regra de recusa (Etapa 1, regra 5) impede.                                                                                                                                                                    |
+| Capture acima do esperado  | Sim, e a compra é sinalizada para o financeiro.                                                                                                                                                                      |
 | Compras depois do negativo | Não. Qualquer valor fica acima de um limite restante negativo, então a authorization é recusada com `monthly_limit_exceeded`. Com o saldo disponível da empresa zerado ou negativo, a recusa é `insufficient_funds`. |
 
 O cartão fica travado até o mês seguinte, ou a empresa até um novo depósito, e o financeiro vê o motivo no painel.
@@ -200,13 +203,13 @@ Cada compra ocupa do limite do cartão, e do saldo disponível da empresa:
 >
 > **reserva** = 0 se a compra foi recusada, já recebeu a capture `final: true` ou já recebeu uma cancellation. Senão, é o que falta capturar do valor autorizado, nunca menos que zero.
 
-| Momento | Reserva | Efeito |
-|---|---|---|
-| Aprovada | o valor autorizado | sai do limite e do saldo disponível |
-| Depois de uma capture parcial | autorizado − capturado, mínimo 0 | a capture é debitada do saldo da empresa na hora e consome a reserva no mesmo valor |
-| Depois da capture `final: true` | 0 | a capture é debitada, e o que sobrou da reserva volta para o limite e para o saldo disponível |
-| Depois de uma cancellation | 0 | o que sobrou da reserva volta |
-| Recusada | 0 | nada é reservado |
+| Momento                         | Reserva                          | Efeito                                                                                        |
+| ------------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------- |
+| Aprovada                        | o valor autorizado               | sai do limite e do saldo disponível                                                           |
+| Depois de uma capture parcial   | autorizado − capturado, mínimo 0 | a capture é debitada do saldo da empresa na hora e consome a reserva no mesmo valor           |
+| Depois da capture `final: true` | 0                                | a capture é debitada, e o que sobrou da reserva volta para o limite e para o saldo disponível |
+| Depois de uma cancellation      | 0                                | o que sobrou da reserva volta                                                                 |
+| Recusada                        | 0                                | nada é reservado                                                                              |
 
 Cada transaction (Decisão 2) é a diferença dessa conta antes e depois da mensagem. Com autorizado de 800 e captures de 300, 300 e 260 (final), o consumo passa por 800, 800, 800 e 860, e a reserva por 800, 500, 200 e 0.
 
@@ -222,12 +225,12 @@ Cada transaction (Decisão 2) é a diferença dessa conta antes e depois da mens
 
 **Princípio.** O sinal depende só dos fatos da própria compra e das regras fixas do cartão, nunca de outras compras nem da ordem de chegada. Ele é recalculado sempre que a compra ganha um fato novo. Assim, as mesmas mensagens geram os mesmos alertas em qualquer ordem. Uma compra pode ter mais de um motivo, e o painel mostra todos.
 
-| Motivo | Quando | Por quê |
-|---|---|---|
-| `over_capture` | total capturado acima da margem: `capturado × 100 > autorizado × 120` nos MCC 5812, 7011 e 7512, ou `capturado > autorizado` nos demais | a rede cobrou além do que o enunciado prevê (Decisão 3) |
-| `over_purchase_limit` | o cartão tem teto por compra e o total capturado passa dele | o teto é uma regra de negócio da empresa: tudo o que sai acima dele precisa chegar ao financeiro, mesmo dentro da margem da rede |
-| `captured_when_declined` | a compra tem capture, mas a authorization foi recusada | saiu dinheiro sem aprovação do Passa; é o alerta mais grave |
-| `captured_after_cancellation` | uma capture tem `occurred_at` posterior ao da cancellation | a rede disse que não cobraria mais e cobrou. A comparação é pelo horário do fato na rede, não pela chegada, para não depender da ordem |
+| Motivo                        | Quando                                                                                                                                  | Por quê                                                                                                                                |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `over_capture`                | total capturado acima da margem: `capturado × 100 > autorizado × 120` nos MCC 5812, 7011 e 7512, ou `capturado > autorizado` nos demais | a rede cobrou além do que o enunciado prevê (Decisão 3)                                                                                |
+| `over_purchase_limit`         | o cartão tem teto por compra e o total capturado passa dele                                                                             | o teto é uma regra de negócio da empresa: tudo o que sai acima dele precisa chegar ao financeiro, mesmo dentro da margem da rede       |
+| `captured_when_declined`      | a compra tem capture, mas a authorization foi recusada                                                                                  | saiu dinheiro sem aprovação do Passa; é o alerta mais grave                                                                            |
+| `captured_after_cancellation` | uma capture tem `occurred_at` posterior ao da cancellation                                                                              | a rede disse que não cobraria mais e cobrou. A comparação é pelo horário do fato na rede, não pela chegada, para não depender da ordem |
 
 Os motivos que dependem da authorization (`over_capture`, `captured_when_declined`) só podem ser avaliados quando ela chega. Até lá, a compra aparece na lista de events sem authorization.
 
@@ -255,10 +258,10 @@ Enquanto a authorization não chega, a compra aparece no painel na lista de even
 
 **Exemplo.** Capture final de 100 na Ana antes da authorization de 100 (MCC 5812):
 
-| Chega | O que o Passa faz | Limite da Ana | Saldo da empresa |
-|---|---|---:|---:|
-| capture 100 (final) | grava, sem transaction | 2.000 | 10.000 |
-| authorization 100 | aprova, reserva zero (compra fechada) e aplica a capture | 1.900 | 9.900 |
+| Chega               | O que o Passa faz                                        | Limite da Ana | Saldo da empresa |
+| ------------------- | -------------------------------------------------------- | ------------: | ---------------: |
+| capture 100 (final) | grava, sem transaction                                   |         2.000 |           10.000 |
+| authorization 100   | aprova, reserva zero (compra fechada) e aplica a capture |         1.900 |            9.900 |
 
 Na ordem inversa, o resultado final é o mesmo: 1.900 e 9.900.
 
@@ -274,10 +277,10 @@ Na ordem inversa, o resultado final é o mesmo: 1.900 e 9.900.
 
 Uma compra pertence ao mês do `occurred_at` da **authorization**, convertido para `America/Sao_Paulo`. Todas as transactions dela contam nesse mês: a reserva, as captures e a cancellation, mesmo que cheguem ou tenham acontecido depois. O mês fica gravado na compra quando a authorization chega.
 
-| Fato | `occurred_at` (São Paulo) | Mês da compra |
-|---|---|---|
-| authorization de 800 num hotel | 30/09 | setembro |
-| capture de 860 (final) | 02/10 | setembro |
+| Fato                           | `occurred_at` (São Paulo) | Mês da compra |
+| ------------------------------ | ------------------------- | ------------- |
+| authorization de 800 num hotel | 30/09                     | setembro      |
+| capture de 860 (final)         | 02/10                     | setembro      |
 
 **Consequências.**
 
@@ -318,13 +321,13 @@ As decisões de authorization, o `/available`, o painel e a área do funcionári
 
 Toda tabela tem chave própria (`bigint`, o padrão do Laravel). O `id` da rede fica numa coluna com índice único:
 
-| Tabela | Chave | `id` da rede |
-|---|---|---|
-| `purchases` | `id` | `network_authorization_id`, único |
-| `authorizations` | `id` | `network_id`, único |
-| `captures` | `id` | `network_id`, único |
-| `cancellations` | `id` | `network_id`, único |
-| `transactions` | `id` | `reference`, o `id` da mensagem que originou a linha |
+| Tabela           | Chave | `id` da rede                                         |
+| ---------------- | ----- | ---------------------------------------------------- |
+| `purchases`      | `id`  | `network_authorization_id`, único                    |
+| `authorizations` | `id`  | `network_id`, único                                  |
+| `captures`       | `id`  | `network_id`, único                                  |
+| `cancellations`  | `id`  | `network_id`, único                                  |
+| `transactions`   | `id`  | `reference`, o `id` da mensagem que originou a linha |
 
 O índice único em `network_id` é o que sustenta o `INSERT … ON CONFLICT` da base arquitetural. Em `transactions`, uma chave única na mensagem de origem garante no banco que uma mensagem gera no máximo uma transaction (Decisão 2): mesmo que um bug tente aplicar a mesma capture duas vezes, o Postgres recusa. O `id` sequencial do ledger também dá uma ordem estável de gravação, que o statement usa.
 
@@ -339,22 +342,22 @@ A chave sequencial não é proteção de acesso. Um portador que troque o `id` d
 
 Há dois tipos de repetição, e cada um tem a sua chave.
 
-| | Entrega repetida | Reemissão |
-|---|---|---|
-| `id` | igual | diferente |
-| Conteúdo | idêntico | idêntico, exceto o `id` |
-| Acontece com | authorizations e events, até 4 entregas, inclusive simultâneas | só events |
-| Chave que reconhece | `network_id` único (Decisão 9) | chave natural da compra: `captures (purchase_id, sequence)` e `cancellations (purchase_id)` |
+|                     | Entrega repetida                                               | Reemissão                                                                                   |
+| ------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `id`                | igual                                                          | diferente                                                                                   |
+| Conteúdo            | idêntico                                                       | idêntico, exceto o `id`                                                                     |
+| Acontece com        | authorizations e events, até 4 entregas, inclusive simultâneas | só events                                                                                   |
+| Chave que reconhece | `network_id` único (Decisão 9)                                 | chave natural da compra: `captures (purchase_id, sequence)` e `cancellations (purchase_id)` |
 
 As chaves naturais vêm das garantias da rede: as sequences de uma compra começam em 1 e não se repetem, e há no máximo uma cancellation por compra. Elas valem também para events que chegam antes da authorization, porque a compra nasce com a primeira mensagem (Decisão 1).
 
 **O que o Passa responde.**
 
-| Situação | Resposta |
-|---|---|
-| Mensagem nova | grava e responde: a decisão, para authorization, ou `202`, para event |
-| Entrega repetida | a resposta original, lida do que foi gravado: a mesma decisão ou `200`. Nada novo é gravado |
-| Reemissão com conteúdo idêntico | `200`. Nada novo é gravado, e o `reference` no statement continua sendo o `id` da primeira mensagem |
+| Situação                                   | Resposta                                                                                                                                                                                |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mensagem nova                              | grava e responde: a decisão, para authorization, ou `202`, para event                                                                                                                   |
+| Entrega repetida                           | a resposta original, lida do que foi gravado: a mesma decisão ou `200`. Nada novo é gravado                                                                                             |
+| Reemissão com conteúdo idêntico            | `200`. Nada novo é gravado, e o `reference` no statement continua sendo o `id` da primeira mensagem                                                                                     |
 | Mesma chave natural com conteúdo diferente | `409`. A rede garante que isso não acontece. Se acontecer, o `4xx` vira pendência manual entre a rede e o Passa, que é o tratamento certo para uma inconsistência que precisa de alguém |
 
 Na comparação de conteúdo entram todos os campos do contrato menos o `id`: `type`, `authorization_id`, `occurred_at` e, nas captures, `amount_cents`, `currency`, `sequence` e `final`. Quando entregas ou reemissões chegam juntas, a segunda espera o commit da primeira no índice único, e depois compara ou lê o que foi gravado.
@@ -367,46 +370,46 @@ Na comparação de conteúdo entram todos os campos do contrato menos o `id`: `t
 
 ### Dinheiro e concorrência
 
-| Risco: o que pode dar errado | O que impede | Teste |
-|---|---|---|
-| **Aprovar acima do limite em paralelo.** Duas authorizations do mesmo cartão chegam juntas, as duas leem o mesmo limite restante e as duas são aprovadas. | Decisão e gravação na mesma transação do banco, com `SELECT … FOR UPDATE` na empresa e depois no cartão. A segunda espera a primeira terminar e lê o limite já atualizado. | Várias authorizations simultâneas em processos separados, somando mais que o limite: o total aprovado nunca passa do limite nem do saldo disponível. |
-| **Deadlock.** Dois caminhos travam empresa e cartão em ordens diferentes e um espera pelo outro para sempre. | Todos os caminhos de escrita travam na mesma ordem: empresa, depois cartão. O depósito trava só a empresa. | Coberto pelo teste de concorrência, misturando authorizations e events do mesmo cartão. |
-| **Resposta antes do commit.** O Passa responde `approved`, a gravação falha, e a rede considera aprovada uma compra que não existe. | A resposta só é montada depois que `DB::transaction` retorna. Nada que mexe em dinheiro vai para fila. | Uma falha forçada depois da gravação faz rollback completo, responde `5xx` e não deixa nenhum registro. A nova entrega da mesma mensagem é processada normalmente. |
-| **Resposta depois de 2 segundos.** A rede trata a authorization como recusada e manda uma cancellation, enquanto o Passa tinha aprovado e reservado. | Transações curtas, sem I/O externo dentro do lock e com índices nas chaves de busca. Se ainda assim acontecer, a cancellation libera a reserva (Decisão 4) e o estado final fica correto. | Authorization aprovada seguida de cancellation: o limite e o saldo disponível voltam ao valor anterior. |
-| **Centavos perdidos por ponto flutuante.** | Valores sempre inteiros em centavos (`bigint`). A margem de 20% é comparada só com inteiros: `capturado × 100 ≤ autorizado × 120`. | Limite da margem: 480,00 sobre 400,00 não é sinalizado, e 480,01 é. |
+| Risco: o que pode dar errado                                                                                                                              | O que impede                                                                                                                                                                              | Teste                                                                                                                                                              |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Aprovar acima do limite em paralelo.** Duas authorizations do mesmo cartão chegam juntas, as duas leem o mesmo limite restante e as duas são aprovadas. | Decisão e gravação na mesma transação do banco, com `SELECT … FOR UPDATE` na empresa e depois no cartão. A segunda espera a primeira terminar e lê o limite já atualizado.                | Várias authorizations simultâneas em processos separados, somando mais que o limite: o total aprovado nunca passa do limite nem do saldo disponível.               |
+| **Deadlock.** Dois caminhos travam empresa e cartão em ordens diferentes e um espera pelo outro para sempre.                                              | Todos os caminhos de escrita travam na mesma ordem: empresa, depois cartão. O depósito trava só a empresa.                                                                                | Coberto pelo teste de concorrência, misturando authorizations e events do mesmo cartão.                                                                            |
+| **Resposta antes do commit.** O Passa responde `approved`, a gravação falha, e a rede considera aprovada uma compra que não existe.                       | A resposta só é montada depois que `DB::transaction` retorna. Nada que mexe em dinheiro vai para fila.                                                                                    | Uma falha forçada depois da gravação faz rollback completo, responde `5xx` e não deixa nenhum registro. A nova entrega da mesma mensagem é processada normalmente. |
+| **Resposta depois de 2 segundos.** A rede trata a authorization como recusada e manda uma cancellation, enquanto o Passa tinha aprovado e reservado.      | Transações curtas, sem I/O externo dentro do lock e com índices nas chaves de busca. Se ainda assim acontecer, a cancellation libera a reserva (Decisão 4) e o estado final fica correto. | Authorization aprovada seguida de cancellation: o limite e o saldo disponível voltam ao valor anterior.                                                            |
+| **Centavos perdidos por ponto flutuante.**                                                                                                                | Valores sempre inteiros em centavos (`bigint`). A margem de 20% é comparada só com inteiros: `capturado × 100 ≤ autorizado × 120`.                                                        | Limite da margem: 480,00 sobre 400,00 não é sinalizado, e 480,01 é.                                                                                                |
 
 ### Mensagens repetidas e fora de ordem
 
-| Risco: o que pode dar errado | O que impede | Teste |
-|---|---|---|
-| **Entrega repetida reservando em dobro**, ou entregas da mesma authorization respondendo decisões diferentes. | Índice único em `network_id` com `INSERT … ON CONFLICT`. A entrega repetida lê a resposta já gravada (Decisões 9 e 10). | A mesma authorization enviada duas vezes, em sequência e em paralelo: a mesma decisão nas duas e uma única transaction. |
-| **Reemissão cobrando em dobro.** A capture chega de novo com `id` novo. | Chaves naturais `captures (purchase_id, sequence)` e `cancellations (purchase_id)`, com comparação de conteúdo. Conteúdo idêntico responde `200` sem gravar; conteúdo diferente responde `409` (Decisão 10). | Reemissão idêntica não muda nada; mesma `sequence` com outro valor recebe `409`. |
-| **Uma mensagem gerando duas transactions** por um bug de aplicação. | Chave única em `transactions` na mensagem de origem (Decisão 9). | A segunda tentativa de gravar a transaction da mesma mensagem é recusada pelo banco. |
-| **Resultado dependente da ordem de chegada.** | Consumo = capturado + reserva (Decisão 4); events guardados até a authorization chegar (Decisão 6); sinalização calculada só com os fatos da compra (Decisão 5). | As mensagens do P2 e de uma compra com capture depois de cancellation, aplicadas em várias ordens: limite restante, saldo, saldo disponível e sinalização finais idênticos. |
+| Risco: o que pode dar errado                                                                                  | O que impede                                                                                                                                                                                                 | Teste                                                                                                                                                                       |
+| ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Entrega repetida reservando em dobro**, ou entregas da mesma authorization respondendo decisões diferentes. | Índice único em `network_id` com `INSERT … ON CONFLICT`. A entrega repetida lê a resposta já gravada (Decisões 9 e 10).                                                                                      | A mesma authorization enviada duas vezes, em sequência e em paralelo: a mesma decisão nas duas e uma única transaction.                                                     |
+| **Reemissão cobrando em dobro.** A capture chega de novo com `id` novo.                                       | Chaves naturais `captures (purchase_id, sequence)` e `cancellations (purchase_id)`, com comparação de conteúdo. Conteúdo idêntico responde `200` sem gravar; conteúdo diferente responde `409` (Decisão 10). | Reemissão idêntica não muda nada; mesma `sequence` com outro valor recebe `409`.                                                                                            |
+| **Uma mensagem gerando duas transactions** por um bug de aplicação.                                           | Chave única em `transactions` na mensagem de origem (Decisão 9).                                                                                                                                             | A segunda tentativa de gravar a transaction da mesma mensagem é recusada pelo banco.                                                                                        |
+| **Resultado dependente da ordem de chegada.**                                                                 | Consumo = capturado + reserva (Decisão 4); events guardados até a authorization chegar (Decisão 6); sinalização calculada só com os fatos da compra (Decisão 5).                                             | As mensagens do P2 e de uma compra com capture depois de cancellation, aplicadas em várias ordens: limite restante, saldo, saldo disponível e sinalização finais idênticos. |
 
 ### Ledger e consultas
 
-| Risco: o que pode dar errado | O que impede | Teste |
-|---|---|---|
-| **Invariante do statement quebrado**, ou statement e `/available` discordando. | O statement soma o ledger linha a linha, em ordem de gravação; o `/available` lê a projeção atualizada na mesma transação (Decisão 8). | Ao final de cada cenário, cada linha do statement é a anterior mais o valor dela, e o final é igual ao `/available`. |
-| **Projeção divergindo do ledger.** | Projeção atualizada só pelo módulo Ledger, na mesma transação da transaction. O comando `ledger:rebuild` reconstrói a partir do ledger. | Projeção igual à soma do ledger depois dos cenários, e igual de novo depois do rebuild. |
-| **Transaction alterada ou apagada** depois de aparecer num statement. | Nenhum caminho de código faz `UPDATE` ou `DELETE` em mensagens, decisões ou transactions. Os models recusam atualização e exclusão. | Tentar alterar ou apagar uma transaction lança exceção. |
-| **Compra contada no mês errado** perto da meia-noite. | O `occurred_at` da authorization é convertido para `America/Sao_Paulo` antes de definir o mês (Decisão 7). | Uma authorization em `2026-10-01T01:00:00Z` entra no statement de setembro. |
+| Risco: o que pode dar errado                                                   | O que impede                                                                                                                            | Teste                                                                                                                |
+| ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **Invariante do statement quebrado**, ou statement e `/available` discordando. | O statement soma o ledger linha a linha, em ordem de gravação; o `/available` lê a projeção atualizada na mesma transação (Decisão 8).  | Ao final de cada cenário, cada linha do statement é a anterior mais o valor dela, e o final é igual ao `/available`. |
+| **Projeção divergindo do ledger.**                                             | Projeção atualizada só pelo módulo Ledger, na mesma transação da transaction. O comando `ledger:rebuild` reconstrói a partir do ledger. | Projeção igual à soma do ledger depois dos cenários, e igual de novo depois do rebuild.                              |
+| **Transaction alterada ou apagada** depois de aparecer num statement.          | Nenhum caminho de código faz `UPDATE` ou `DELETE` em mensagens, decisões ou transactions. Os models recusam atualização e exclusão.     | Tentar alterar ou apagar uma transaction lança exceção.                                                              |
+| **Compra contada no mês errado** perto da meia-noite.                          | O `occurred_at` da authorization é convertido para `America/Sao_Paulo` antes de definir o mês (Decisão 7).                              | Uma authorization em `2026-10-01T01:00:00Z` entra no statement de setembro.                                          |
 
 ### Rede e contrato
 
-| Risco: o que pode dar errado | O que impede | Teste |
-|---|---|---|
-| **Requisição forjada ou reenviada por terceiros.** | HMAC-SHA256 sobre o corpo bruto, comparado com `hash_equals`, e janela de 5 minutos no timestamp. É o primeiro passo, antes de qualquer validação. | Assinatura ausente, inválida ou com timestamp fora da janela: `401`. Corpo inválido com assinatura inválida: `401`, e não `422`. GET sem corpo assinado sobre `"<timestamp>."`. |
-| **Tipo frouxo aceito.** `"12990"` como string ou `129.9` passando como valor. | Validação de tipo JSON estrito: inteiro precisa ser inteiro, string precisa ser string. A regra `integer` do Laravel aceita strings numéricas e não serve sozinha. | Cada campo do contrato com o tipo errado responde `422`. |
+| Risco: o que pode dar errado                                                  | O que impede                                                                                                                                                       | Teste                                                                                                                                                                           |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Requisição forjada ou reenviada por terceiros.**                            | HMAC-SHA256 sobre o corpo bruto, comparado com `hash_equals`, e janela de 5 minutos no timestamp. É o primeiro passo, antes de qualquer validação.                 | Assinatura ausente, inválida ou com timestamp fora da janela: `401`. Corpo inválido com assinatura inválida: `401`, e não `422`. GET sem corpo assinado sobre `"<timestamp>."`. |
+| **Tipo frouxo aceito.** `"12990"` como string ou `129.9` passando como valor. | Validação de tipo JSON estrito: inteiro precisa ser inteiro, string precisa ser string. A regra `integer` do Laravel aceita strings numéricas e não serve sozinha. | Cada campo do contrato com o tipo errado responde `422`.                                                                                                                        |
 
 ### Acesso
 
-| Risco: o que pode dar errado | O que impede | Teste |
-|---|---|---|
-| **Portador entrando no painel.** O template libera o painel para qualquer usuário (`canAccessPanel` retorna `true`). | O painel aceita só a gestora. | Portador acessando `/admin`: `403`. |
-| **Portador vendo dados de outro portador**, trocando um `id` na URL ou num parâmetro de ação Livewire. | Toda consulta da área do funcionário parte do cartão do usuário logado. Nenhuma rota nem ação aceita um cartão como parâmetro, e uma compra de outro cartão não é encontrada. | Portador pedindo compra de outro: `404`, pela rota e pela ação Livewire. |
-| **Usuário sem cartão em `/my-card`.** | A rota exige que o usuário tenha cartão. | A Marina acessando `/my-card`: `403`. |
+| Risco: o que pode dar errado                                                                                         | O que impede                                                                                                                                                                  | Teste                                                                    |
+| -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| **Portador entrando no painel.** O template libera o painel para qualquer usuário (`canAccessPanel` retorna `true`). | O painel aceita só a gestora.                                                                                                                                                 | Portador acessando `/admin`: `403`.                                      |
+| **Portador vendo dados de outro portador**, trocando um `id` na URL ou num parâmetro de ação Livewire.               | Toda consulta da área do funcionário parte do cartão do usuário logado. Nenhuma rota nem ação aceita um cartão como parâmetro, e uma compra de outro cartão não é encontrada. | Portador pedindo compra de outro: `404`, pela rota e pela ação Livewire. |
+| **Usuário sem cartão em `/my-card`.**                                                                                | A rota exige que o usuário tenha cartão.                                                                                                                                      | A Marina acessando `/my-card`: `403`.                                    |
 
 ## 4. O que eu esperava dos cenários
 
@@ -420,18 +423,18 @@ Ponto de partida, pelo seed: empresa com saldo de R$ 10.000,00 e nada reservado.
 
 Valores em reais.
 
-| # | Mensagem | Decisão | Ana: limite restante | Ana: disponível | Diego: limite restante | Diego: disponível | Saldo da empresa | Reservado | Sinalizada |
-|---|---|---|---:|---:|---:|---:|---:|---:|---|
-| 1 | authorization 800,00 | `approved` | 1.200,00 | 1.200,00 | 50.000,00 | 9.200,00 | 10.000,00 | 800,00 | não |
-| 2 | capture 300,00, `sequence` 1 | — | 1.200,00 | 1.200,00 | 50.000,00 | 9.200,00 | 9.700,00 | 500,00 | não |
-| 3 | capture 300,00, `sequence` 2 | — | 1.200,00 | 1.200,00 | 50.000,00 | 9.200,00 | 9.400,00 | 200,00 | não |
-| 4 | capture 260,00, `sequence` 3, `final` | — | 1.140,00 | 1.140,00 | 50.000,00 | 9.140,00 | 9.140,00 | 0,00 | sim, `over_purchase_limit` |
+| #   | Mensagem                              | Decisão    | Ana: limite restante | Ana: disponível | Diego: limite restante | Diego: disponível | Saldo da empresa | Reservado | Sinalizada                 |
+| --- | ------------------------------------- | ---------- | -------------------: | --------------: | ---------------------: | ----------------: | ---------------: | --------: | -------------------------- |
+| 1   | authorization 800,00                  | `approved` |             1.200,00 |        1.200,00 |              50.000,00 |          9.200,00 |        10.000,00 |    800,00 | não                        |
+| 2   | capture 300,00, `sequence` 1          | —          |             1.200,00 |        1.200,00 |              50.000,00 |          9.200,00 |         9.700,00 |    500,00 | não                        |
+| 3   | capture 300,00, `sequence` 2          | —          |             1.200,00 |        1.200,00 |              50.000,00 |          9.200,00 |         9.400,00 |    200,00 | não                        |
+| 4   | capture 260,00, `sequence` 3, `final` | —          |             1.140,00 |        1.140,00 |              50.000,00 |          9.140,00 |         9.140,00 |      0,00 | sim, `over_purchase_limit` |
 
 1. 800,00 é igual ao teto, e não acima dele, e cabe no limite e no saldo disponível: aprovada. A compra reserva o valor autorizado (Decisão 4), que sai do limite restante da Ana e do saldo disponível da empresa (10.000 − 800 = 9.200).
 2. e 3. Cada capture é debitada do saldo da empresa e consome a reserva no mesmo valor. O limite restante não muda, e a linha entra no statement com valor 0 (Decisão 2). O saldo disponível também não muda: o saldo cai 300, e o reservado cai 300.
-4. A capture final consome os 200,00 que restavam da reserva, e os 60,00 excedentes saem do limite restante. O total capturado é 860,00.
-   - `over_capture`: não, porque 86000 × 100 ≤ 80000 × 120, dentro da margem de 20% do MCC 7011.
-   - `over_purchase_limit`: sim, porque 860,00 passa do teto de 800,00 (Decisão 5).
+3. A capture final consome os 200,00 que restavam da reserva, e os 60,00 excedentes saem do limite restante. O total capturado é 860,00.
+    - `over_capture`: não, porque 86000 × 100 ≤ 80000 × 120, dentro da margem de 20% do MCC 7011.
+    - `over_purchase_limit`: sim, porque 860,00 passa do teto de 800,00 (Decisão 5).
 
 Statement da Ana ao final: −80000 → 120000 · 0 → 120000 · 0 → 120000 · −6000 → 114000.
 
@@ -439,12 +442,12 @@ Statement da Ana ao final: −80000 → 120000 · 0 → 120000 · 0 → 120000 �
 
 Valores em reais.
 
-| # | Mensagem | Decisão | Bruno: limite restante | Bruno: disponível | Diego: limite restante | Diego: disponível | Saldo da empresa | Reservado | Sinalizada |
-|---|---|---|---:|---:|---:|---:|---:|---:|---|
-| 1 | authorization 400,00 | `approved` | 100,00 | 100,00 | 50.000,00 | 9.600,00 | 10.000,00 | 400,00 | não |
-| 2 | capture 480,00, `final` | — | 20,00 | 20,00 | 50.000,00 | 9.520,00 | 9.520,00 | 0,00 | não |
-| 3 | authorization 50,00 | `declined`, `monthly_limit_exceeded` | 20,00 | 20,00 | 50.000,00 | 9.520,00 | 9.520,00 | 0,00 | não |
-| 4 | authorization 20,00 | `approved` | 0,00 | 0,00 | 50.000,00 | 9.500,00 | 9.520,00 | 20,00 | não |
+| #   | Mensagem                | Decisão                              | Bruno: limite restante | Bruno: disponível | Diego: limite restante | Diego: disponível | Saldo da empresa | Reservado | Sinalizada |
+| --- | ----------------------- | ------------------------------------ | ---------------------: | ----------------: | ---------------------: | ----------------: | ---------------: | --------: | ---------- |
+| 1   | authorization 400,00    | `approved`                           |                 100,00 |            100,00 |              50.000,00 |          9.600,00 |        10.000,00 |    400,00 | não        |
+| 2   | capture 480,00, `final` | —                                    |                  20,00 |             20,00 |              50.000,00 |          9.520,00 |         9.520,00 |      0,00 | não        |
+| 3   | authorization 50,00     | `declined`, `monthly_limit_exceeded` |                  20,00 |             20,00 |              50.000,00 |          9.520,00 |         9.520,00 |      0,00 | não        |
+| 4   | authorization 20,00     | `approved`                           |                   0,00 |              0,00 |              50.000,00 |          9.500,00 |         9.520,00 |     20,00 | não        |
 
 1. Cabe no limite e no saldo: aprovada, e reserva 400,00.
 2. A capture consome os 400,00 da reserva, e os 80,00 excedentes saem do limite restante. Não é sinalizada: 48000 × 100 = 40000 × 120, exatamente 20%, e a margem é inclusiva. O Bruno não tem teto por compra.
@@ -458,7 +461,8 @@ Statement do Bruno ao final: −40000 → 10000 · −8000 → 2000 · −2000 �
 570,00 capturados na Ana, sem reserva aberta. Ana: limite restante e disponível de 143000. Diego: limite restante de 5000000 e disponível de 943000. Bate com o resultado que o enunciado publica.
 
 ## 5. O que mudou e o que foi descartado
-Usei IA durante todo o desafio como par de discussão e auxílio nas dúvidas. Não aceitei um rascunho pronto do `MODEL.md`: decidi cada um dos dez pontos separadamente, comparando e analizando as opções antes de escrever. 
+
+Usei IA durante todo o desafio como par de discussão e auxílio nas dúvidas. Não aceitei um rascunho pronto do `MODEL.md`: decidi cada um dos dez pontos separadamente, comparando e analizando as opções antes de escrever.
 
 ### O que mudou no meu primeiro rascunho
 
@@ -481,13 +485,13 @@ Fiquei com o padrão, sem a cerimônia: log append-only como fonte da verdade e 
 
 ### Descartado da base arquitetural
 
-| Descartado | Motivo |
-|---|---|
-| Projeções assíncronas, por fila | a decisão precisa do estado exato do momento; uma projeção atrasada permitiria aprovar acima do limite |
-| Event store genérico ou biblioteca de event sourcing | infraestrutura a mais para justificar e explicar; o padrão cabe em tabelas append-only |
-| Snapshots de agregados | otimização de replay para volumes grandes, sem ganho aqui |
-| `CHECKPOINT` e snapshots como proteção contra falha de disco | não protegem contra isso; durabilidade física é infraestrutura |
-| DDD com repositórios e camadas de infraestrutura | briga com o Laravel idiomático e com o preset de arquitetura do Pest |
+| Descartado                                                   | Motivo                                                                                                 |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| Projeções assíncronas, por fila                              | a decisão precisa do estado exato do momento; uma projeção atrasada permitiria aprovar acima do limite |
+| Event store genérico ou biblioteca de event sourcing         | infraestrutura a mais para justificar e explicar; o padrão cabe em tabelas append-only                 |
+| Snapshots de agregados                                       | otimização de replay para volumes grandes, sem ganho aqui                                              |
+| `CHECKPOINT` e snapshots como proteção contra falha de disco | não protegem contra isso; durabilidade física é infraestrutura                                         |
+| DDD com repositórios e camadas de infraestrutura             | briga com o Laravel idiomático e com o preset de arquitetura do Pest                                   |
 
 ### Portas que o modelo deixa abertas
 
