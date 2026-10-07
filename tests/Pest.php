@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Network\NetworkSignature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 /*
@@ -39,7 +42,74 @@ expect()->extend('toBeOne', fn () => $this->toBe(1));
 |--------------------------------------------------------------------------
 */
 
-function something(): void
+/**
+ * @param  array<mixed>|string|null  $body
+ * @param  array<string, string>  $headers
+ */
+function network(string $method, string $uri, array|string|null $body = null, ?int $timestamp = null, array $headers = []): TestResponse
 {
-    // ..
+    $content = is_array($body) ? (string) json_encode($body) : (string) $body;
+    $timestamp = (string) ($timestamp ?? now()->getTimestamp());
+
+    $headers += [
+        'X-Network-Timestamp' => $timestamp,
+        'X-Network-Signature' => NetworkSignature::fromConfig()->sign($timestamp, $content),
+    ];
+
+    $server = ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'];
+
+    foreach ($headers as $name => $value) {
+        $server['HTTP_'.mb_strtoupper(str_replace('-', '_', $name))] = $value;
+    }
+
+    return test()->call($method, $uri, server: $server, content: $content);
+}
+
+/**
+ * @param  array<string, mixed>  $overrides
+ * @return array<string, mixed>
+ */
+function authorizationPayload(array $overrides = []): array
+{
+    return array_replace([
+        'id' => 'aut_'.Str::ulid(),
+        'card_token' => 'tok_ana',
+        'amount_cents' => 12990,
+        'currency' => 'BRL',
+        'mcc' => '5812',
+        'merchant' => ['name' => 'Restaurante Bom Prato', 'city' => 'Porto Alegre', 'country' => 'BR'],
+        'occurred_at' => now()->utc()->format('Y-m-d\\TH:i:s\\Z'),
+    ], $overrides);
+}
+
+/**
+ * @param  array<string, mixed>  $overrides
+ * @return array<string, mixed>
+ */
+function capturePayload(string $authorizationId, array $overrides = []): array
+{
+    return array_replace([
+        'id' => 'evt_'.Str::ulid(),
+        'type' => 'capture',
+        'occurred_at' => now()->utc()->format('Y-m-d\\TH:i:s\\Z'),
+        'authorization_id' => $authorizationId,
+        'amount_cents' => 12990,
+        'currency' => 'BRL',
+        'sequence' => 1,
+        'final' => true,
+    ], $overrides);
+}
+
+/**
+ * @param  array<string, mixed>  $overrides
+ * @return array<string, mixed>
+ */
+function cancellationPayload(string $authorizationId, array $overrides = []): array
+{
+    return array_replace([
+        'id' => 'evt_'.Str::ulid(),
+        'type' => 'cancellation',
+        'occurred_at' => now()->utc()->format('Y-m-d\\TH:i:s\\Z'),
+        'authorization_id' => $authorizationId,
+    ], $overrides);
 }
