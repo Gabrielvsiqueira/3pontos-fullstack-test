@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Network\NetworkSignature;
 use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Process\Pool;
+use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
@@ -69,6 +71,31 @@ function network(string $method, string $uri, array|string|null $body = null, ?i
     }
 
     return test()->call($method, $uri, server: $server, content: $content);
+}
+
+/**
+ * @param  list<array{0: string, 1: array<string, mixed>}>  $requests
+ * @return list<array{status: int, body: array<string, string>}>
+ */
+function deliverAtOnce(array $requests): array
+{
+    $startAt = (string) (microtime(true) + 1.5);
+    $env = [
+        'APP_ENV' => 'testing',
+        'DB_DATABASE' => (string) config('database.connections.pgsql.database'),
+    ];
+
+    $results = Process::pool(function (Pool $pool) use ($requests, $startAt, $env): void {
+        foreach ($requests as [$uri, $payload]) {
+            $pool->path(base_path())->env($env)->timeout(30)
+                ->command([PHP_BINARY, 'tests/Concurrency/network-worker.php', $uri, (string) json_encode($payload), $startAt]);
+        }
+    })->start()->wait();
+
+    return array_values(array_map(
+        fn ($result): array => json_decode($result->throw()->output(), true),
+        $results->collect()->all(),
+    ));
 }
 
 /**
