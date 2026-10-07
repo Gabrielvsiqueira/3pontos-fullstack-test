@@ -5,13 +5,23 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Network;
 
 use App\Http\Controllers\Controller;
+use App\Ledger\BillingMonth;
+use App\Ledger\Ledger;
+use App\Models\Card;
+use App\Models\Company;
 use Illuminate\Http\JsonResponse;
-use Symfony\Component\HttpFoundation\Response;
 
 final class CardAvailableController extends Controller
 {
-    public function __invoke(string $cardToken): JsonResponse
+    public function __invoke(string $cardToken, Ledger $ledger): JsonResponse
     {
-        return response()->json(['message' => 'Not implemented.'], Response::HTTP_NOT_IMPLEMENTED);
+        $card = Card::query()->where('token', $cardToken)->firstOrFail();
+        $company = Company::query()->findOrFail($card->company_id);
+        $month = BillingMonth::of(now());
+
+        return response()->json([
+            'available_cents' => $ledger->availableFor($card, $company, $month),
+            'limit_remaining_cents' => $ledger->limitRemaining($card, $month),
+        ]);
     }
 }

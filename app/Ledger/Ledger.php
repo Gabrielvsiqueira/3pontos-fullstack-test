@@ -66,4 +66,13 @@ final readonly class Ledger
 
         return $card->monthly_limit_cents + (int) $delta;
     }
+
+    public function availableFor(Card $card, Company $company, string $month): int
+    {
+        if ($card->blocked) {
+            return 0;
+        }
+
+        return max(0, min($this->limitRemaining($card, $month), $company->availableCents()));
+    }
 }
