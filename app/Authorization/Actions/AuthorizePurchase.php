@@ -11,6 +11,7 @@ use App\Enums\DeclineReason;
 use App\Enums\TransactionType;
 use App\Ledger\BillingMonth;
 use App\Ledger\Ledger;
+use App\Ledger\PurchaseMovements;
 use App\Ledger\Purchases;
 use App\Models\Authorization;
 use App\Models\Card;
@@ -24,6 +25,7 @@ final readonly class AuthorizePurchase
         private DeclineRules $rules,
         private Ledger $ledger,
         private Purchases $purchases,
+        private PurchaseMovements $movements,
     ) {}
 
     public function handle(AuthorizationMessage $message): AuthorizationResult
@@ -77,22 +79,28 @@ final readonly class AuthorizePurchase
             $purchase->month = $month;
             $purchase->authorized_cents = $message->amountCents;
 
-            if ($decision === Decision::Approved && $company instanceof Company) {
-                $purchase->held_cents = $message->amountCents;
-                $purchase->save();
+            $hold = $decision === Decision::Approved && ! $this->movements->hasClosingEvent($purchase)
+                ? $message->amountCents
+                : 0;
 
-                $this->ledger->post(
-                    source: $authorization,
-                    company: $company,
-                    type: TransactionType::Authorization,
-                    reference: $message->id,
-                    occurredAt: $message->occurredAt,
-                    limitDelta: -$message->amountCents,
-                    heldDelta: $message->amountCents,
-                    purchase: $purchase,
-                );
-            } else {
-                $purchase->save();
+            $purchase->held_cents = $hold;
+            $purchase->save();
+
+            if ($company instanceof Company) {
+                if ($hold > 0) {
+                    $this->ledger->post(
+                        source: $authorization,
+                        company: $company,
+                        type: TransactionType::Authorization,
+                        reference: $message->id,
+                        occurredAt: $message->occurredAt,
+                        limitDelta: -$hold,
+                        heldDelta: $hold,
+                        purchase: $purchase,
+                    );
+                }
+
+                $this->movements->applyPending($purchase, $company);
             }
 
             return AuthorizationResult::from($authorization);

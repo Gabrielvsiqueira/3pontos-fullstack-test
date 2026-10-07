@@ -14,6 +14,28 @@ final readonly class PurchaseMovements
 {
     public function __construct(private Ledger $ledger) {}
 
+    public function hasClosingEvent(Purchase $purchase): bool
+    {
+        return $purchase->captures()->where('final', true)->exists()
+            || $purchase->cancellation()->exists();
+    }
+
+    public function applyPending(Purchase $purchase, Company $company): void
+    {
+        $events = $purchase->captures()->get()
+            ->concat($purchase->cancellation()->get())
+            ->sortBy([
+                fn (Capture|Cancellation $a, Capture|Cancellation $b): int => $a->occurred_at <=> $b->occurred_at,
+                fn (Capture|Cancellation $a, Capture|Cancellation $b): int => $a->id <=> $b->id,
+            ]);
+
+        foreach ($events as $event) {
+            $event instanceof Capture
+                ? $this->applyCapture($purchase, $company, $event)
+                : $this->applyCancellation($purchase, $company, $event);
+        }
+    }
+
     public function applyCapture(Purchase $purchase, Company $company, Capture $capture): void
     {
         $consumed = min($capture->amount_cents, $purchase->held_cents);
