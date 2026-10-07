@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Ledger\BillingMonth;
 use App\Network\NetworkSignature;
 use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -71,6 +72,32 @@ function network(string $method, string $uri, array|string|null $body = null, ?i
     }
 
     return test()->call($method, $uri, server: $server, content: $content);
+}
+
+/**
+ * @return array<string, mixed>
+ */
+function assertStatementInvariant(string $token, ?string $month = null): array
+{
+    $statement = network('GET', "/api/network/cards/{$token}/statement".($month === null ? '' : "?month={$month}"))
+        ->assertOk()
+        ->json();
+
+    $remaining = $statement['limit_cents'];
+
+    foreach ($statement['transactions'] as $line) {
+        $remaining += $line['amount_cents'];
+        expect($line['limit_remaining_after_cents'])->toBe($remaining);
+    }
+
+    expect($statement['limit_remaining_cents'])->toBe($remaining);
+
+    if ($month === null || $month === BillingMonth::of(now())) {
+        expect(network('GET', "/api/network/cards/{$token}/available")->json('limit_remaining_cents'))
+            ->toBe($statement['limit_remaining_cents']);
+    }
+
+    return $statement;
 }
 
 /**
