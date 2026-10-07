@@ -68,6 +68,16 @@ final readonly class RecordEvent
             return EventOutcome::AlreadyReceived;
         }
 
+        if (Cancellation::query()->where('network_id', $message->id)->exists()) {
+            return EventOutcome::Conflict;
+        }
+
+        $original = $purchase->captures()->where('sequence', $message->sequence)->first();
+
+        if ($original instanceof Capture) {
+            return $this->isSameCapture($original, $message) ? EventOutcome::AlreadyReceived : EventOutcome::Conflict;
+        }
+
         $capture = $purchase->captures()->create([
             'network_id' => $message->id,
             'sequence' => $message->sequence,
@@ -93,6 +103,16 @@ final readonly class RecordEvent
             return EventOutcome::AlreadyReceived;
         }
 
+        if (Capture::query()->where('network_id', $message->id)->exists()) {
+            return EventOutcome::Conflict;
+        }
+
+        $original = $purchase->cancellation()->first();
+
+        if ($original instanceof Cancellation) {
+            return $original->occurred_at->equalTo($message->occurredAt) ? EventOutcome::AlreadyReceived : EventOutcome::Conflict;
+        }
+
         $cancellation = $purchase->cancellation()->create([
             'network_id' => $message->id,
             'occurred_at' => $message->occurredAt,
@@ -106,5 +126,13 @@ final readonly class RecordEvent
         $this->flags->recompute($purchase);
 
         return EventOutcome::Accepted;
+    }
+
+    private function isSameCapture(Capture $original, CaptureMessage $message): bool
+    {
+        return $original->occurred_at->equalTo($message->occurredAt)
+            && $original->amount_cents === $message->amountCents
+            && $original->currency === $message->currency
+            && $original->final === $message->final;
     }
 }
