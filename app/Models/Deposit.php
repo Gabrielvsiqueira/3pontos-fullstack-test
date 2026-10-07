@@ -17,16 +17,25 @@ final class Deposit extends Model
         'occurred_at',
     ];
 
+    /**
+     * @return BelongsTo<Company, $this>
+     */
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @return MorphOne<Transaction, $this>
+     */
     public function transaction(): MorphOne
     {
         return $this->morphOne(Transaction::class, 'source');

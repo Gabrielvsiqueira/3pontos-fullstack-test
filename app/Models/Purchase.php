@@ -25,26 +25,41 @@ final class Purchase extends Model
         'captured_after_cancellation',
     ];
 
+    /**
+     * @return BelongsTo<Card, $this>
+     */
     public function card(): BelongsTo
     {
         return $this->belongsTo(Card::class);
     }
 
+    /**
+     * @return HasOne<Authorization, $this>
+     */
     public function authorization(): HasOne
     {
         return $this->hasOne(Authorization::class);
     }
 
+    /**
+     * @return HasMany<Capture, $this>
+     */
     public function captures(): HasMany
     {
         return $this->hasMany(Capture::class);
     }
 
+    /**
+     * @return HasOne<Cancellation, $this>
+     */
     public function cancellation(): HasOne
     {
         return $this->hasOne(Cancellation::class);
     }
 
+    /**
+     * @return HasMany<Transaction, $this>
+     */
     public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);

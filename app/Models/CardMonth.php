@@ -15,6 +15,9 @@ final class CardMonth extends Model
         'limit_delta_cents',
     ];
 
+    /**
+     * @return BelongsTo<Card, $this>
+     */
     public function card(): BelongsTo
     {
         return $this->belongsTo(Card::class);

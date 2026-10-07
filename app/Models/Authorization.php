@@ -27,11 +27,17 @@ final class Authorization extends Model
         'payload',
     ];
 
+    /**
+     * @return BelongsTo<Purchase, $this>
+     */
     public function purchase(): BelongsTo
     {
         return $this->belongsTo(Purchase::class);
     }
 
+    /**
+     * @return MorphOne<Transaction, $this>
+     */
     public function transaction(): MorphOne
     {
         return $this->morphOne(Transaction::class, 'source');
