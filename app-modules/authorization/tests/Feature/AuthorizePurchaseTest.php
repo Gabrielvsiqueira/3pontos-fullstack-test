@@ -144,6 +144,32 @@ it('does not decide again when a repeated delivery arrives after the state chang
         ->assertExactJson(['decision' => 'declined', 'reason' => 'insufficient_funds']);
 });
 
+it('rolls everything back and answers 5xx when the write fails before the commit', function (): void {
+    $failing = true;
+    Transaction::created(function () use (&$failing): void {
+        throw_if($failing, RuntimeException::class, 'The database went away.');
+    });
+
+    $payload = authorizationPayload(['id' => 'aut_crash', 'card_token' => 'tok_ana', 'amount_cents' => 30_000]);
+
+    network('POST', '/api/network/authorizations', $payload)->assertServerError();
+
+    expect(Purchase::query()->where('network_authorization_id', 'aut_crash')->exists())->toBeFalse()
+        ->and(Authorization::query()->count())->toBe(0)
+        ->and(Transaction::query()->where('type', TransactionType::Authorization)->count())->toBe(0)
+        ->and(Company::query()->sole()->held_cents)->toBe(0)
+        ->and(limitRemaining('tok_ana'))->toBe(200_000);
+
+    $failing = false;
+
+    network('POST', '/api/network/authorizations', $payload)->assertExactJson(['decision' => 'approved']);
+
+    expect(Authorization::query()->count())->toBe(1)
+        ->and(Transaction::query()->where('type', TransactionType::Authorization)->count())->toBe(1)
+        ->and(Company::query()->sole()->held_cents)->toBe(30_000)
+        ->and(limitRemaining('tok_ana'))->toBe(170_000);
+});
+
 it('attributes the purchase to its month in America/Sao_Paulo', function (): void {
     authorize(['id' => 'aut_late', 'card_token' => 'tok_bruno', 'amount_cents' => 50_000, 'occurred_at' => '2026-10-01T02:59:59Z'])
         ->assertExactJson(['decision' => 'approved']);
