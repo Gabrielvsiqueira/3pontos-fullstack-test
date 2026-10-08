@@ -29,7 +29,7 @@ it('rejects a body changed after signing', function (): void {
 
     network('POST', '/api/network/authorizations', $sent, headers: [
         'X-Network-Timestamp' => $timestamp,
-        'X-Network-Signature' => 'sha256='.hash_hmac('sha256', $timestamp.'.'.$signed, (string) config('services.network.secret')),
+        'X-Network-Signature' => 'sha256='.hash_hmac('sha256', $timestamp.'.'.$signed, (string) config('network.secret')),
     ])->assertUnauthorized();
 });
 

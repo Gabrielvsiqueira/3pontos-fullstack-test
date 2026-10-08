@@ -2,15 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Network;
+namespace Passa\Network\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Network\StatementRequest;
 use Illuminate\Http\JsonResponse;
 use Passa\Ledger\CardStatement;
 use Passa\Ledger\Models\Card;
+use Passa\Network\Http\Requests\StatementRequest;
 
-final class CardStatementController extends Controller
+final class CardStatementController
 {
     public function __invoke(StatementRequest $request, string $cardToken, CardStatement $statement): JsonResponse
     {

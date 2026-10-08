@@ -12,6 +12,9 @@ parameters:
             - app-modules/*/tests/*
             - app-modules/*/database/*
     parseModelCastsMethod: true
+    configDirectories:
+        - config
+        - app-modules/network/config
     databaseMigrationsPath:
         - database/migrations
         - app-modules/ledger/database/migrations

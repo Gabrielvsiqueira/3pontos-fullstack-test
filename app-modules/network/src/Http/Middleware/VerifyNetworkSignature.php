@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Middleware;
+namespace Passa\Network\Http\Middleware;
 
-use App\Network\NetworkSignature;
 use Closure;
 use Illuminate\Http\Request;
+use Passa\Network\NetworkSignature;
 use Symfony\Component\HttpFoundation\Response;
 
 final class VerifyNetworkSignature

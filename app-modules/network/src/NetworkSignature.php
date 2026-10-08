@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Network;
+namespace Passa\Network;
 
 use Carbon\CarbonImmutable;
 use SensitiveParameter;
@@ -17,8 +17,8 @@ final readonly class NetworkSignature
     public static function fromConfig(): self
     {
         return new self(
-            (string) config('services.network.secret'),
-            (int) config('services.network.tolerance'),
+            (string) config('network.secret'),
+            (int) config('network.tolerance'),
         );
     }
 

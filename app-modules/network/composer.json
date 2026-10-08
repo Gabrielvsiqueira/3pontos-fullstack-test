@@ -1,0 +1,25 @@
+{
+    "name": "passa/network",
+    "description": "The HTTP integration with the card network: signed requests, the contract validation and the query endpoints.",
+    "type": "library",
+    "version": "1.0.0",
+    "license": "proprietary",
+    "autoload": {
+        "psr-4": {
+            "Passa\\Network\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Passa\\Network\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "stable",
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Passa\\Network\\NetworkServiceProvider"
+            ]
+        }
+    }
+}

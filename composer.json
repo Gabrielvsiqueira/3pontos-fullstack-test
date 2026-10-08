@@ -16,7 +16,8 @@
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0",
         "passa/authorization": ">=1",
-        "passa/ledger": ">=1"
+        "passa/ledger": ">=1",
+        "passa/network": ">=1"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^4.4",

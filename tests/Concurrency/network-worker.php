@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use App\Network\NetworkSignature;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Sleep;
+use Passa\Network\NetworkSignature;
 
 require __DIR__.'/../../vendor/autoload.php';
 

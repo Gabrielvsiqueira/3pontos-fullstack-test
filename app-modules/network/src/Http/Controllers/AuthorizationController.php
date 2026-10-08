@@ -2,14 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Network;
+namespace Passa\Network\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Network\AuthorizationRequest;
 use Illuminate\Http\JsonResponse;
 use Passa\Authorization\Actions\AuthorizePurchase;
+use Passa\Network\Http\Requests\AuthorizationRequest;
 
-final class AuthorizationController extends Controller
+final class AuthorizationController
 {
     public function __invoke(AuthorizationRequest $request, AuthorizePurchase $authorize): JsonResponse
     {

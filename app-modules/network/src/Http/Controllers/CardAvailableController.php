@@ -2,16 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Network;
+namespace Passa\Network\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Passa\Ledger\BillingMonth;
 use Passa\Ledger\Ledger;
 use Passa\Ledger\Models\Card;
 use Passa\Ledger\Models\Company;
 
-final class CardAvailableController extends Controller
+final class CardAvailableController
 {
     public function __invoke(string $cardToken, Ledger $ledger): JsonResponse
     {
