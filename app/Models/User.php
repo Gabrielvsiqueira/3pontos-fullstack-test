@@ -57,6 +57,11 @@ final class User extends Authenticatable implements FilamentUser
         return $this->role === UserRole::Manager;
     }
 
+    public function homeUrl(): string
+    {
+        return $this->isManager() ? url('/admin') : route('my-card');
+    }
+
     public function canAccessPanel(Panel $panel): bool
     {
         return $this->isManager();

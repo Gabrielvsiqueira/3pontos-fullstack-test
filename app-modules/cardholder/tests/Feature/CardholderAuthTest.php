@@ -19,6 +19,14 @@ it('renders the login form', function (): void {
         ->assertSeeLivewire(Login::class);
 });
 
+it('offers a light and dark theme that follows the system until chosen', function (): void {
+    $this->get('/login')
+        ->assertOk()
+        ->assertSee('data-test="theme-toggle"', false)
+        ->assertSee("localStorage.getItem('passa-theme')", false)
+        ->assertSee('prefers-color-scheme: dark', false);
+});
+
 it('logs a cardholder in and sends them to their card', function (): void {
     Livewire::test(Login::class)
         ->set('email', 'ana@acme.test')
@@ -89,6 +97,20 @@ it('sends a logged in cardholder from the login to their card', function (): voi
     $this->actingAs(User::query()->where('email', 'ana@acme.test')->sole())
         ->get('/login')
         ->assertRedirect(route('my-card'));
+});
+
+it('sends a logged in manager from the login to the panel', function (): void {
+    $this->actingAs(User::query()->where('email', 'marina@acme.test')->sole())
+        ->get('/login')
+        ->assertRedirect(url('/admin'));
+});
+
+it('sends a manager who logs in through the cardholder form to the panel', function (): void {
+    Livewire::test(Login::class)
+        ->set('email', 'marina@acme.test')
+        ->set('password', 'password')
+        ->call('login')
+        ->assertRedirect(url('/admin'));
 });
 
 it('logs out and invalidates the session', function (): void {

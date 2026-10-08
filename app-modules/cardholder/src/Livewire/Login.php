@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Passa\Cardholder\Livewire;
 
+use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -50,7 +51,9 @@ final class Login extends Component
         RateLimiter::clear($key);
         session()->regenerate();
 
-        $this->redirectIntended(route('my-card'), navigate: false);
+        $user = Auth::user();
+
+        $this->redirectIntended($user instanceof User ? $user->homeUrl() : route('my-card'), navigate: false);
     }
 
     public function render(): View
