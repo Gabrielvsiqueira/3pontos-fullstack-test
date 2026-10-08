@@ -12,6 +12,7 @@
     "require": {
         "php": "^8.4",
         "filament/filament": "^5.8",
+        "internachi/modular": "^3.0.2",
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0"
     },
@@ -122,5 +123,14 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "type": "path",
+            "url": "app-modules/*",
+            "options": {
+                "symlink": true
+            }
+        }
+    ]
 }

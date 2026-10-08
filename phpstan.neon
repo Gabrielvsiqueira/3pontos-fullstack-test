@@ -6,4 +6,9 @@ parameters:
     level: 6
     paths:
         - app/
+        - app-modules/
+    excludePaths:
+        analyse:
+            - app-modules/*/tests/*
+            - app-modules/*/database/*
     parseModelCastsMethod: true

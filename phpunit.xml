@@ -10,9 +10,11 @@
         </testsuite>
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
+            <directory>app-modules/*/tests/Unit</directory>
         </testsuite>
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
+            <directory>app-modules/*/tests/Feature</directory>
         </testsuite>
         <testsuite name="Concurrency">
             <directory>tests/Concurrency</directory>
@@ -21,6 +23,7 @@
     <source>
         <include>
             <directory>app</directory>
+            <directory>app-modules/*/src</directory>
         </include>
     </source>
     <php>

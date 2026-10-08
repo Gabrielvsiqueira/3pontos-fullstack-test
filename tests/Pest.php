@@ -23,13 +23,13 @@ use Tests\TestCase;
 |
 */
 
-pest()->group('feature')->in('Feature');
-pest()->group('unit')->in('Unit');
+pest()->group('feature')->in('Feature', '../app-modules/*/tests/Feature');
+pest()->group('unit')->in('Unit', '../app-modules/*/tests/Unit');
 pest()->group('concurrency')->in('Concurrency');
 
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
-    ->in('Feature', 'Unit');
+    ->in('Feature', 'Unit', '../app-modules/*/tests/Feature', '../app-modules/*/tests/Unit');
 
 pest()->extend(TestCase::class)
     ->use(DatabaseTruncation::class)
