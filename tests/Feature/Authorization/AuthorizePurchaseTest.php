@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-use App\Enums\Decision;
-use App\Enums\TransactionType;
-use App\Ledger\Actions\RecordDeposit;
-use App\Ledger\Ledger;
-use App\Models\Authorization;
-use App\Models\Card;
-use App\Models\Company;
-use App\Models\Purchase;
-use App\Models\Transaction;
 use Illuminate\Testing\TestResponse;
+use Passa\Ledger\Actions\RecordDeposit;
+use Passa\Ledger\Enums\Decision;
+use Passa\Ledger\Enums\TransactionType;
+use Passa\Ledger\Ledger;
+use Passa\Ledger\Models\Authorization;
+use Passa\Ledger\Models\Card;
+use Passa\Ledger\Models\Company;
+use Passa\Ledger\Models\Purchase;
+use Passa\Ledger\Models\Transaction;
 
 beforeEach(function (): void {
     $this->seed();

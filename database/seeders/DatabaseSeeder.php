@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Enums\UserRole;
-use App\Ledger\Actions\RecordDeposit;
-use App\Models\Company;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Passa\Ledger\Actions\RecordDeposit;
+use Passa\Ledger\Models\Company;
 
 final class DatabaseSeeder extends Seeder
 {

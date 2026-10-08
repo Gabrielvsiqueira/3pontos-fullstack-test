@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\Cards\Schemas;
 
-use App\Ledger\BillingMonth;
-use App\Ledger\Ledger;
-use App\Models\Card;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Passa\Ledger\BillingMonth;
+use Passa\Ledger\Ledger;
+use Passa\Ledger\Models\Card;
 
 final class CardInfolist
 {

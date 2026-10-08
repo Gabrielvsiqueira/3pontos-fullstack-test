@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Models\Purchase;
+use Passa\Ledger\Models\Purchase;
 
 beforeEach(function (): void {
     $this->seed();

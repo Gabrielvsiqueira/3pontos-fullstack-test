@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\Purchases\Tables;
 
-use App\Enums\Decision;
-use App\Enums\DeclineReason;
 use App\Filament\Admin\PurchaseFlagLabels;
-use App\Models\Purchase;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Passa\Ledger\Enums\Decision;
+use Passa\Ledger\Enums\DeclineReason;
+use Passa\Ledger\Models\Purchase;
 
 final class PurchasesTable
 {

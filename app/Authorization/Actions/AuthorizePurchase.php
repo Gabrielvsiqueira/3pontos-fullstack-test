@@ -6,19 +6,19 @@ namespace App\Authorization\Actions;
 
 use App\Authorization\AuthorizationResult;
 use App\Authorization\DeclineRules;
-use App\Enums\Decision;
-use App\Enums\DeclineReason;
-use App\Enums\TransactionType;
-use App\Ledger\BillingMonth;
-use App\Ledger\Ledger;
-use App\Ledger\PurchaseFlags;
-use App\Ledger\PurchaseMovements;
-use App\Ledger\Purchases;
-use App\Models\Authorization;
-use App\Models\Card;
-use App\Models\Company;
 use App\Network\Messages\AuthorizationMessage;
 use Illuminate\Support\Facades\DB;
+use Passa\Ledger\BillingMonth;
+use Passa\Ledger\Enums\Decision;
+use Passa\Ledger\Enums\DeclineReason;
+use Passa\Ledger\Enums\TransactionType;
+use Passa\Ledger\Ledger;
+use Passa\Ledger\Models\Authorization;
+use Passa\Ledger\Models\Card;
+use Passa\Ledger\Models\Company;
+use Passa\Ledger\PurchaseFlags;
+use Passa\Ledger\PurchaseMovements;
+use Passa\Ledger\Purchases;
 
 final readonly class AuthorizePurchase
 {

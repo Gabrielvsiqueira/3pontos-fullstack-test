@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Pages;
 
-use App\Enums\TransactionType;
-use App\Ledger\Actions\RecordDeposit;
-use App\Models\Company;
-use App\Models\Transaction;
 use App\Models\User;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -22,6 +18,10 @@ use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Passa\Ledger\Actions\RecordDeposit;
+use Passa\Ledger\Enums\TransactionType;
+use Passa\Ledger\Models\Company;
+use Passa\Ledger\Models\Transaction;
 
 final class CompanyStatement extends Page implements HasTable
 {

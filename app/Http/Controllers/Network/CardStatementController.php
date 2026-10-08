@@ -6,9 +6,9 @@ namespace App\Http\Controllers\Network;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Network\StatementRequest;
-use App\Ledger\CardStatement;
-use App\Models\Card;
 use Illuminate\Http\JsonResponse;
+use Passa\Ledger\CardStatement;
+use Passa\Ledger\Models\Card;
 
 final class CardStatementController extends Controller
 {

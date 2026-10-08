@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Ledger\BillingMonth;
 use App\Network\NetworkSignature;
 use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -10,6 +9,7 @@ use Illuminate\Process\Pool;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
+use Passa\Ledger\BillingMonth;
 use Tests\TestCase;
 
 /*

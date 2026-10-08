@@ -1,6 +1,6 @@
 @use ('App\Cards\Livewire\MyCard')
-@use ('App\Enums\Decision')
-@use ('App\Ledger\BillingMonth')
+@use ('Passa\Ledger\Enums\Decision')
+@use ('Passa\Ledger\BillingMonth')
 @use ('App\Support\Money')
 @use ('Carbon\CarbonImmutable')
 

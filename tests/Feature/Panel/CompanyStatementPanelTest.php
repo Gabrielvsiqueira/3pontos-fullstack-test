@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use App\Enums\TransactionType;
 use App\Filament\Admin\Pages\CompanyStatement;
-use App\Models\Company;
-use App\Models\Deposit;
-use App\Models\Transaction;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Livewire\Livewire;
+use Passa\Ledger\Enums\TransactionType;
+use Passa\Ledger\Models\Company;
+use Passa\Ledger\Models\Deposit;
+use Passa\Ledger\Models\Transaction;
 
 beforeEach(function (): void {
     $this->seed();

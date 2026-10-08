@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Models\Company;
-use App\Models\Purchase;
 use Illuminate\Support\Facades\DB;
+use Passa\Ledger\Models\Company;
+use Passa\Ledger\Models\Purchase;
 
 beforeEach(function (): void {
     $this->seed();

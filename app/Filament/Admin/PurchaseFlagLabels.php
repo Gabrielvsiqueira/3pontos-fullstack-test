@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin;
 
-use App\Models\Purchase;
+use Passa\Ledger\Models\Purchase;
 
 final class PurchaseFlagLabels
 {

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Authorization;
 
-use App\Enums\Decision;
-use App\Enums\DeclineReason;
-use App\Models\Authorization;
+use Passa\Ledger\Enums\Decision;
+use Passa\Ledger\Enums\DeclineReason;
+use Passa\Ledger\Models\Authorization;
 
 final readonly class AuthorizationResult
 {

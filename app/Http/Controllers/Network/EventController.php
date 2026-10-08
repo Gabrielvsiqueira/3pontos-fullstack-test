@@ -6,8 +6,8 @@ namespace App\Http\Controllers\Network;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Network\EventRequest;
-use App\Ledger\Actions\RecordEvent;
 use Illuminate\Http\JsonResponse;
+use Passa\Ledger\Actions\RecordEvent;
 
 final class EventController extends Controller
 {

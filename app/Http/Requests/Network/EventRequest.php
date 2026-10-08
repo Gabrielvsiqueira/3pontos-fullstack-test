@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Network;
 
-use App\Network\Messages\CancellationMessage;
-use App\Network\Messages\CaptureMessage;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Passa\Ledger\DTOs\CancellationMessage;
+use Passa\Ledger\DTOs\CaptureMessage;
 
 final class EventRequest extends FormRequest
 {

@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Network;
 
 use App\Http\Controllers\Controller;
-use App\Ledger\BillingMonth;
-use App\Ledger\Ledger;
-use App\Models\Card;
-use App\Models\Company;
 use Illuminate\Http\JsonResponse;
+use Passa\Ledger\BillingMonth;
+use Passa\Ledger\Ledger;
+use Passa\Ledger\Models\Card;
+use Passa\Ledger\Models\Company;
 
 final class CardAvailableController extends Controller
 {

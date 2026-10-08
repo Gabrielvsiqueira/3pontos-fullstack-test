@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 use App\Cards\Livewire\MyCard;
-use App\Models\Purchase;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Livewire\Livewire;
+use Passa\Ledger\Models\Purchase;
 
 beforeEach(function (): void {
     $this->seed();

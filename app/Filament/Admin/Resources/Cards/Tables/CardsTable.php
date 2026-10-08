@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\Cards\Tables;
 
-use App\Ledger\BillingMonth;
-use App\Ledger\Ledger;
-use App\Models\Card;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Passa\Ledger\BillingMonth;
+use Passa\Ledger\Ledger;
+use Passa\Ledger\Models\Card;
 
 final class CardsTable
 {

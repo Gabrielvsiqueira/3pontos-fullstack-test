@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\Purchases\Pages;
 
-use App\Enums\Decision;
 use App\Filament\Admin\Resources\Purchases\PurchaseResource;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
+use Passa\Ledger\Enums\Decision;
 
 final class ListPurchases extends ListRecords
 {

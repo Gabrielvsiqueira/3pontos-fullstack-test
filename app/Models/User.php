@@ -13,6 +13,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Passa\Ledger\Models\Card;
+use Passa\Ledger\Models\Company;
 
 final class User extends Authenticatable implements FilamentUser
 {

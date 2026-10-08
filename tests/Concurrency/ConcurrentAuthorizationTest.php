@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Enums\TransactionType;
-use App\Models\Authorization;
-use App\Models\Company;
-use App\Models\Transaction;
+use Passa\Ledger\Enums\TransactionType;
+use Passa\Ledger\Models\Authorization;
+use Passa\Ledger\Models\Company;
+use Passa\Ledger\Models\Transaction;
 
 beforeEach(function (): void {
     $this->seed();

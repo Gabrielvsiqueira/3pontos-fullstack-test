@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Network;
 
-use App\Ledger\BillingMonth;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Passa\Ledger\BillingMonth;
 
 final class StatementRequest extends FormRequest
 {

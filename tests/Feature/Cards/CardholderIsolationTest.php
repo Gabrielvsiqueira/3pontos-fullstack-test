@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 use App\Cards\Livewire\MyCard;
-use App\Models\Card;
-use App\Models\Purchase;
 use App\Models\User;
 use Livewire\Exceptions\MethodNotFoundException;
 use Livewire\Livewire;
+use Passa\Ledger\Models\Card;
+use Passa\Ledger\Models\Purchase;
 
 beforeEach(function (): void {
     $this->seed();

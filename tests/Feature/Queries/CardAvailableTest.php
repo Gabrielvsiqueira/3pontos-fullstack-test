@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Models\Card;
 use Illuminate\Testing\TestResponse;
+use Passa\Ledger\Models\Card;
 
 beforeEach(function (): void {
     $this->seed();

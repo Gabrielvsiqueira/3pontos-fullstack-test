@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "892e7f99828ef586bf605164b3f42efe",
+    "content-hash": "67522f6e7a21a528e3ff36f7178ea6e9",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -4947,6 +4947,42 @@
                 "source": "https://github.com/paragonie/constant_time_encoding"
             },
             "time": "2025-09-24T15:06:41+00:00"
+        },
+        {
+            "name": "passa/ledger",
+            "version": "1.0.0",
+            "dist": {
+                "type": "path",
+                "url": "app-modules/ledger",
+                "reference": "32f715da47647eca83fa99c8a9fbf135d4ec8c6d"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Passa\\Ledger\\LedgerServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Passa\\Ledger\\": "src/",
+                    "Passa\\Ledger\\Database\\Factories\\": "database/factories/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Passa\\Ledger\\Tests\\": "tests/"
+                }
+            },
+            "license": [
+                "proprietary"
+            ],
+            "description": "The issuer books: companies, cards, purchases, the facts the network reports and the transactions derived from them.",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "phpoption/phpoption",

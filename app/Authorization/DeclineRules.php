@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Authorization;
 
-use App\Enums\DeclineReason;
-use App\Models\Card;
-use App\Models\Company;
+use Passa\Ledger\Enums\DeclineReason;
+use Passa\Ledger\Models\Card;
+use Passa\Ledger\Models\Company;
 
 final readonly class DeclineRules
 {

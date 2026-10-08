@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 use App\Filament\Admin\Resources\Purchases\Pages\ListPurchases;
-use App\Models\Purchase;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Livewire;
+use Passa\Ledger\Models\Purchase;
 
 beforeEach(function (): void {
     $this->seed();

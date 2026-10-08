@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
-use App\Models\Card;
 use Closure;
 use Illuminate\Http\Request;
+use Passa\Ledger\Models\Card;
 use Symfony\Component\HttpFoundation\Response;
 
 final class EnsureUserHasCard

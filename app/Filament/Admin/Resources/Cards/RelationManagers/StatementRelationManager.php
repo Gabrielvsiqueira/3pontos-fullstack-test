@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\Cards\RelationManagers;
 
-use App\Enums\TransactionType;
-use App\Ledger\BillingMonth;
-use App\Ledger\CardStatement;
-use App\Models\Card;
-use App\Models\Transaction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use LogicException;
+use Passa\Ledger\BillingMonth;
+use Passa\Ledger\CardStatement;
+use Passa\Ledger\Enums\TransactionType;
+use Passa\Ledger\Models\Card;
+use Passa\Ledger\Models\Transaction;
 
 final class StatementRelationManager extends RelationManager
 {

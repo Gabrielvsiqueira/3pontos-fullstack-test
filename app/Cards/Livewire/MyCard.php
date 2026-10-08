@@ -4,12 +4,6 @@ declare(strict_types=1);
 
 namespace App\Cards\Livewire;
 
-use App\Ledger\BillingMonth;
-use App\Ledger\CardStatement;
-use App\Ledger\Ledger;
-use App\Ledger\PurchaseHistory;
-use App\Models\Card;
-use App\Models\Purchase;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -18,6 +12,12 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Passa\Ledger\BillingMonth;
+use Passa\Ledger\CardStatement;
+use Passa\Ledger\Ledger;
+use Passa\Ledger\Models\Card;
+use Passa\Ledger\Models\Purchase;
+use Passa\Ledger\PurchaseHistory;
 
 #[Layout('layouts::cardholder')]
 #[Title('Meu cartão · Passa')]

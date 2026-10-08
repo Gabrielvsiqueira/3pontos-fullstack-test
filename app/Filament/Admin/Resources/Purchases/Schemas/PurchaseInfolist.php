@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Filament\Admin\Resources\Purchases\Schemas;
 
 use App\Filament\Admin\PurchaseFlagLabels;
-use App\Ledger\PurchaseHistory;
-use App\Models\Purchase;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\RepeatableEntry\TableColumn;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Passa\Ledger\Models\Purchase;
+use Passa\Ledger\PurchaseHistory;
 
 final class PurchaseInfolist
 {

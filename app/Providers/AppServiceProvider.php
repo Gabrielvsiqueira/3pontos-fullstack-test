@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use App\Models\Authorization;
-use App\Models\Cancellation;
-use App\Models\Capture;
-use App\Models\Deposit;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
@@ -47,10 +43,6 @@ final class AppServiceProvider extends ServiceProvider
         Model::shouldBeStrict(! $this->app->isProduction());
 
         Relation::enforceMorphMap([
-            'authorization' => Authorization::class,
-            'capture' => Capture::class,
-            'cancellation' => Cancellation::class,
-            'deposit' => Deposit::class,
             'user' => User::class,
         ]);
     }

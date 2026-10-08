@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Models\Card;
 use App\Models\User;
+use Passa\Ledger\Models\Card;
 
 it('lets the manager into the panel', function (): void {
     $this->actingAs(User::factory()->manager()->create())

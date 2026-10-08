@@ -8,7 +8,6 @@ use App\Filament\Admin\Resources\Purchases\Pages\ListPurchases;
 use App\Filament\Admin\Resources\Purchases\Pages\ViewPurchase;
 use App\Filament\Admin\Resources\Purchases\Schemas\PurchaseInfolist;
 use App\Filament\Admin\Resources\Purchases\Tables\PurchasesTable;
-use App\Models\Purchase;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -16,6 +15,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Passa\Ledger\Models\Purchase;
 
 final class PurchaseResource extends Resource
 {
