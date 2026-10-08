@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Cards\Livewire;
+namespace Passa\Cardholder\Livewire;
 
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -19,7 +19,7 @@ use Passa\Ledger\Models\Card;
 use Passa\Ledger\Models\Purchase;
 use Passa\Ledger\PurchaseHistory;
 
-#[Layout('layouts::cardholder')]
+#[Layout('cardholder::layouts.cardholder')]
 #[Title('Meu cartão · Passa')]
 final class MyCard extends Component
 {
@@ -35,7 +35,7 @@ final class MyCard extends Component
         $month = BillingMonth::of(now());
         $purchases = $this->purchases($card);
 
-        return view('cards.my-card', [
+        return view('cardholder::my-card', [
             'card' => $card,
             'monthLabel' => $this->monthLabel($month),
             'available' => $ledger->availableFor($card, $card->company, $month),

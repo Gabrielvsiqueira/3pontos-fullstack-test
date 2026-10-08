@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Cards\Livewire\MyCard;
 use App\Models\User;
 use Livewire\Exceptions\MethodNotFoundException;
 use Livewire\Livewire;
+use Passa\Cardholder\Livewire\MyCard;
 use Passa\Ledger\Models\Card;
 use Passa\Ledger\Models\Purchase;
 

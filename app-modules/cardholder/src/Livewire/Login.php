@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Cards\Livewire;
+namespace Passa\Cardholder\Livewire;
 
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -14,7 +14,7 @@ use Livewire\Attributes\Title;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
-#[Layout('layouts::cardholder')]
+#[Layout('cardholder::layouts.cardholder')]
 #[Title('Entrar · Passa')]
 final class Login extends Component
 {
@@ -55,7 +55,7 @@ final class Login extends Component
 
     public function render(): View
     {
-        return view('cards.login');
+        return view('cardholder::login');
     }
 
     private function throttleKey(): string

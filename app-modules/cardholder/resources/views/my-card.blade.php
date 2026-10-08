@@ -1,4 +1,4 @@
-@use ('App\Cards\Livewire\MyCard')
+@use ('Passa\Cardholder\Livewire\MyCard')
 @use ('Passa\Ledger\Enums\Decision')
 @use ('Passa\Ledger\BillingMonth')
 @use ('App\Support\Money')

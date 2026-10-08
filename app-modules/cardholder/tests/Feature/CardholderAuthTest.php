@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Cards\Livewire\Login;
 use App\Models\User;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Livewire;
+use Passa\Cardholder\Livewire\Login;
 
 beforeEach(function (): void {
     $this->seed();
