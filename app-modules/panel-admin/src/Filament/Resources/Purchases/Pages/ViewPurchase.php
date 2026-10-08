@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Filament\Admin\Resources\Purchases\Pages;
+namespace Passa\Admin\Filament\Resources\Purchases\Pages;
 
-use App\Filament\Admin\Resources\Purchases\PurchaseResource;
 use Filament\Resources\Pages\ViewRecord;
+use Passa\Admin\Filament\Resources\Purchases\PurchaseResource;
 
 final class ViewPurchase extends ViewRecord
 {

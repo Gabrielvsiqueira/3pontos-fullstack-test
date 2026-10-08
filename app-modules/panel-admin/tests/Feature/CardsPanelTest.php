@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-use App\Filament\Admin\Resources\Cards\Pages\ListCards;
-use App\Filament\Admin\Resources\Cards\Pages\ViewCard;
-use App\Filament\Admin\Resources\Cards\RelationManagers\StatementRelationManager;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
+use Passa\Admin\Filament\Resources\Cards\Pages\ListCards;
+use Passa\Admin\Filament\Resources\Cards\Pages\ViewCard;
+use Passa\Admin\Filament\Resources\Cards\RelationManagers\StatementRelationManager;
 use Passa\Ledger\Models\Card;
 use Passa\Ledger\Models\Transaction;
 

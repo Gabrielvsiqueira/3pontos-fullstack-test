@@ -1,4 +1,5 @@
 @import '../../../../vendor/filament/filament/resources/css/theme.css';
 
-@source '../../../../app/Filament/Admin/**/*';
+@source '../../../../app-modules/panel-admin/src/Filament/**/*';
+@source '../../../../app/Filament/Shared/**/*';
 @source '../../../../resources/views/filament/admin/**/*';

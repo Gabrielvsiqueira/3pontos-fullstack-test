@@ -1,0 +1,18 @@
+{
+    "name": "passa/panel-admin",
+    "description": "The Filament panel for the company finance team: cards, purchases, the company statement and deposits.",
+    "type": "library",
+    "version": "1.0.0",
+    "license": "proprietary",
+    "autoload": {
+        "psr-4": {
+            "Passa\\Admin\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Passa\\Admin\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "stable"
+}

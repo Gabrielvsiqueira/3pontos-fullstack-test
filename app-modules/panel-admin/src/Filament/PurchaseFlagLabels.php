@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Filament\Admin;
+namespace Passa\Admin\Filament;
 
 use Passa\Ledger\Models\Purchase;
 

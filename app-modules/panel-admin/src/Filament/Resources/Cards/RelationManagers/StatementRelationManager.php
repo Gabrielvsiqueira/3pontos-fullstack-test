@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Filament\Admin\Resources\Cards\RelationManagers;
+namespace Passa\Admin\Filament\Resources\Cards\RelationManagers;
 
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Columns\TextColumn;

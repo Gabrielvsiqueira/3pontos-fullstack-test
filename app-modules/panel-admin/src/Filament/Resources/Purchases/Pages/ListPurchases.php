@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Filament\Admin\Resources\Purchases\Pages;
+namespace Passa\Admin\Filament\Resources\Purchases\Pages;
 
-use App\Filament\Admin\Resources\Purchases\PurchaseResource;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
+use Passa\Admin\Filament\Resources\Purchases\PurchaseResource;
 use Passa\Ledger\Enums\Decision;
 
 final class ListPurchases extends ListRecords

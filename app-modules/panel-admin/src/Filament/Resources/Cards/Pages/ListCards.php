@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Filament\Admin\Resources\Cards\Pages;
+namespace Passa\Admin\Filament\Resources\Cards\Pages;
 
-use App\Filament\Admin\Resources\Cards\CardResource;
 use Filament\Resources\Pages\ListRecords;
+use Passa\Admin\Filament\Resources\Cards\CardResource;
 
 final class ListCards extends ListRecords
 {

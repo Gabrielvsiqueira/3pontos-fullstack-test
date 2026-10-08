@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Filament\Admin\Pages;
+namespace Passa\Admin\Filament\Pages;
 
 use App\Models\User;
 use BackedEnum;

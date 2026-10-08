@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Filament\Admin\Pages\CompanyStatement;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Livewire\Livewire;
+use Passa\Admin\Filament\Pages\CompanyStatement;
 use Passa\Ledger\Enums\TransactionType;
 use Passa\Ledger\Models\Company;
 use Passa\Ledger\Models\Deposit;

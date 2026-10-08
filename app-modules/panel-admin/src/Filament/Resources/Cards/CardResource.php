@@ -2,13 +2,8 @@
 
 declare(strict_types=1);
 
-namespace App\Filament\Admin\Resources\Cards;
+namespace Passa\Admin\Filament\Resources\Cards;
 
-use App\Filament\Admin\Resources\Cards\Pages\ListCards;
-use App\Filament\Admin\Resources\Cards\Pages\ViewCard;
-use App\Filament\Admin\Resources\Cards\RelationManagers\StatementRelationManager;
-use App\Filament\Admin\Resources\Cards\Schemas\CardInfolist;
-use App\Filament\Admin\Resources\Cards\Tables\CardsTable;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -16,6 +11,11 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Passa\Admin\Filament\Resources\Cards\Pages\ListCards;
+use Passa\Admin\Filament\Resources\Cards\Pages\ViewCard;
+use Passa\Admin\Filament\Resources\Cards\RelationManagers\StatementRelationManager;
+use Passa\Admin\Filament\Resources\Cards\Schemas\CardInfolist;
+use Passa\Admin\Filament\Resources\Cards\Tables\CardsTable;
 use Passa\Ledger\Models\Card;
 
 final class CardResource extends Resource

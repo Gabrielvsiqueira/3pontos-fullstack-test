@@ -34,12 +34,12 @@ final class AdminPanelProvider extends PanelProvider
                 'primary' => Color::Emerald,
             ])
             ->viteTheme('resources/css/filament/admin/theme.css')
-            ->discoverResources(in: app_path('Filament/Admin/Resources'), for: 'App\\Filament\\Admin\\Resources')
-            ->discoverPages(in: app_path('Filament/Admin/Pages'), for: 'App\\Filament\\Admin\\Pages')
+            ->discoverResources(in: base_path('app-modules/panel-admin/src/Filament/Resources'), for: 'Passa\\Admin\\Filament\\Resources')
+            ->discoverPages(in: base_path('app-modules/panel-admin/src/Filament/Pages'), for: 'Passa\\Admin\\Filament\\Pages')
             ->pages([
                 Dashboard::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Admin/Widgets'), for: 'App\\Filament\\Admin\\Widgets')
+            ->discoverWidgets(in: base_path('app-modules/panel-admin/src/Filament/Widgets'), for: 'Passa\\Admin\\Filament\\Widgets')
             ->sidebarFullyCollapsibleOnDesktop()
             ->widgets([
                 AccountWidget::class,

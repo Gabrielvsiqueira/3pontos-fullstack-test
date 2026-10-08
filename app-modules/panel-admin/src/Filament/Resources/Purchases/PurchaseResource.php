@@ -2,12 +2,8 @@
 
 declare(strict_types=1);
 
-namespace App\Filament\Admin\Resources\Purchases;
+namespace Passa\Admin\Filament\Resources\Purchases;
 
-use App\Filament\Admin\Resources\Purchases\Pages\ListPurchases;
-use App\Filament\Admin\Resources\Purchases\Pages\ViewPurchase;
-use App\Filament\Admin\Resources\Purchases\Schemas\PurchaseInfolist;
-use App\Filament\Admin\Resources\Purchases\Tables\PurchasesTable;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -15,6 +11,10 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Passa\Admin\Filament\Resources\Purchases\Pages\ListPurchases;
+use Passa\Admin\Filament\Resources\Purchases\Pages\ViewPurchase;
+use Passa\Admin\Filament\Resources\Purchases\Schemas\PurchaseInfolist;
+use Passa\Admin\Filament\Resources\Purchases\Tables\PurchasesTable;
 use Passa\Ledger\Models\Purchase;
 
 final class PurchaseResource extends Resource

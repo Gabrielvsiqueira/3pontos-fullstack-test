@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Filament\Admin\Resources\Cards\Tables;
+namespace Passa\Admin\Filament\Resources\Cards\Tables;
 
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\IconColumn;

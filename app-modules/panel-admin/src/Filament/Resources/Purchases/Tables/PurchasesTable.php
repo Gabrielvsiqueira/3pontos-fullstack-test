@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Filament\Admin\Resources\Purchases\Tables;
+namespace Passa\Admin\Filament\Resources\Purchases\Tables;
 
-use App\Filament\Admin\PurchaseFlagLabels;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Passa\Admin\Filament\PurchaseFlagLabels;
 use Passa\Ledger\Enums\Decision;
 use Passa\Ledger\Enums\DeclineReason;
 use Passa\Ledger\Models\Purchase;
