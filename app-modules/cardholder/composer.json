@@ -1,0 +1,25 @@
+{
+    "name": "passa/cardholder",
+    "description": "The cardholder area: login and the my-card screen, in Livewire, Blade and Tailwind.",
+    "type": "library",
+    "version": "1.0.0",
+    "license": "proprietary",
+    "autoload": {
+        "psr-4": {
+            "Passa\\Cardholder\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Passa\\Cardholder\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "stable",
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Passa\\Cardholder\\CardholderServiceProvider"
+            ]
+        }
+    }
+}

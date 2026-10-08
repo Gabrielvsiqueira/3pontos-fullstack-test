@@ -12,8 +12,14 @@
     "require": {
         "php": "^8.4",
         "filament/filament": "^5.8",
+        "internachi/modular": "^3.0.2",
         "laravel/framework": "^13.17",
-        "laravel/tinker": "^3.0"
+        "laravel/tinker": "^3.0",
+        "passa/authorization": ">=1",
+        "passa/cardholder": ">=1",
+        "passa/ledger": ">=1",
+        "passa/network": ">=1",
+        "passa/panel-admin": ">=1"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^4.4",
@@ -122,5 +128,14 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "type": "path",
+            "url": "app-modules/*",
+            "options": {
+                "symlink": true
+            }
+        }
+    ]
 }

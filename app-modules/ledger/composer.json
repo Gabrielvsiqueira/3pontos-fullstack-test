@@ -1,0 +1,26 @@
+{
+    "name": "passa/ledger",
+    "description": "The issuer books: companies, cards, purchases, the facts the network reports and the transactions derived from them.",
+    "type": "library",
+    "version": "1.0.0",
+    "license": "proprietary",
+    "autoload": {
+        "psr-4": {
+            "Passa\\Ledger\\": "src/",
+            "Passa\\Ledger\\Database\\Factories\\": "database/factories/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Passa\\Ledger\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "stable",
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Passa\\Ledger\\LedgerServiceProvider"
+            ]
+        }
+    }
+}
