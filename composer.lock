@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "67522f6e7a21a528e3ff36f7178ea6e9",
+    "content-hash": "4a2772d6e5a601c81483a39d08e46afe",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -4947,6 +4947,34 @@
                 "source": "https://github.com/paragonie/constant_time_encoding"
             },
             "time": "2025-09-24T15:06:41+00:00"
+        },
+        {
+            "name": "passa/authorization",
+            "version": "1.0.0",
+            "dist": {
+                "type": "path",
+                "url": "app-modules/authorization",
+                "reference": "b4c5a1bce40c1b89513ca099187d6160d44caa07"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Passa\\Authorization\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Passa\\Authorization\\Tests\\": "tests/"
+                }
+            },
+            "license": [
+                "proprietary"
+            ],
+            "description": "Decides whether a purchase the network asks about is approved, and reserves its amount in the ledger.",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "passa/ledger",

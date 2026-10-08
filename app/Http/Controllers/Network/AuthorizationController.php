@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Network;
 
-use App\Authorization\Actions\AuthorizePurchase;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Network\AuthorizationRequest;
 use Illuminate\Http\JsonResponse;
+use Passa\Authorization\Actions\AuthorizePurchase;
 
 final class AuthorizationController extends Controller
 {

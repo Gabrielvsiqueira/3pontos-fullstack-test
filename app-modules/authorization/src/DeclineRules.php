@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Authorization;
+namespace Passa\Authorization;
 
 use Passa\Ledger\Enums\DeclineReason;
 use Passa\Ledger\Models\Card;

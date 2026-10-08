@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Authorization\Actions;
+namespace Passa\Authorization\Actions;
 
-use App\Authorization\AuthorizationResult;
-use App\Authorization\DeclineRules;
-use App\Network\Messages\AuthorizationMessage;
 use Illuminate\Support\Facades\DB;
+use Passa\Authorization\AuthorizationResult;
+use Passa\Authorization\DeclineRules;
+use Passa\Authorization\DTOs\AuthorizationMessage;
 use Passa\Ledger\BillingMonth;
 use Passa\Ledger\Enums\Decision;
 use Passa\Ledger\Enums\DeclineReason;

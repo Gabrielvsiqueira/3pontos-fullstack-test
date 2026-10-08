@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Network\Messages;
+namespace Passa\Authorization\DTOs;
 
 use Carbon\CarbonImmutable;
 
