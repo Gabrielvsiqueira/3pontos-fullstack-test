@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Filament\Admin;
+namespace App\Ledger;
 
 use App\Models\Purchase;
+use App\Support\Money;
 use Carbon\CarbonImmutable;
 
 final class PurchaseHistory
@@ -14,7 +15,6 @@ final class PurchaseHistory
      */
     public static function of(Purchase $purchase): array
     {
-        $money = fn (int $cents): string => 'R$ '.number_format($cents / 100, 2, ',', '.');
         $entries = [];
 
         if ($purchase->authorization !== null) {
@@ -26,7 +26,7 @@ final class PurchaseHistory
                     '%s %s · %s · MCC %s · %s',
                     $authorization->decision->value,
                     $authorization->reason->value ?? '',
-                    $money($authorization->amount_cents),
+                    Money::format($authorization->amount_cents),
                     $authorization->mcc,
                     $authorization->merchant_name,
                 )),
@@ -38,7 +38,7 @@ final class PurchaseHistory
             $entries[] = [
                 'occurred_at' => $capture->occurred_at,
                 'message' => 'capture',
-                'details' => sprintf('%s · sequence %d%s', $money($capture->amount_cents), $capture->sequence, $capture->final ? ' · final' : ''),
+                'details' => sprintf('%s · sequence %d%s', Money::format($capture->amount_cents), $capture->sequence, $capture->final ? ' · final' : ''),
                 'reference' => $capture->network_id,
             ];
         }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Admin\Resources\Purchases\Schemas;
 
 use App\Filament\Admin\PurchaseFlagLabels;
-use App\Filament\Admin\PurchaseHistory;
+use App\Ledger\PurchaseHistory;
 use App\Models\Purchase;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\RepeatableEntry;

@@ -15,7 +15,7 @@ beforeEach(function (): void {
 it('renders the login form', function (): void {
     $this->get('/login')
         ->assertOk()
-        ->assertSee('Entrar no seu cartão')
+        ->assertSee('entre no seu cartão')
         ->assertSeeLivewire(Login::class);
 });
 
