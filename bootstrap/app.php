@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $isNetwork = fn (Request $request): bool => $request->is('api/network/*');
         $middleware->trimStrings(except: [$isNetwork]);
         $middleware->convertEmptyStringsToNull(except: [$isNetwork]);
+        $middleware->redirectUsersTo(fn (): string => route('my-card'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
